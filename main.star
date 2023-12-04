@@ -1,5 +1,5 @@
 icon_setup_node = import_module("./services/jvm/icon/src/node-setup/setup_icon_node.star")
-icon_node_launcher = import_module("./src/node-setup/start_icon_node.star")
+icon_node_launcher = import_module("./services/jvm/icon/src/node-setup/start_icon_node.star")
 eth_contract_service = import_module("./services/evm/eth/src/node-setup/contract-service.star")
 eth_relay_setup = import_module("./services/evm/eth/src/relay-setup/contract_configuration.star")
 eth_node = import_module("./services/evm/eth/eth.star")
@@ -15,7 +15,7 @@ btp_relay_setup = import_module("./services/bridges/btp/src/bridge.star")
 ibc_relay_setup = import_module("./services/bridges/ibc/src/bridge.star")
 
 
-def run(plan, command, node_name= None, custom_config = None, icon_service_config = None ,decentralize = false, bride_type = None ,chain_a = None, chain_b = None, service_config_a = None, service_config_b = None, bridge = false):
+def run(plan, command, node_name= None, custom_config = None, icon_service_config = None ,decentralize = False, bride_type = None ,chain_a = None, chain_b = None, service_config_a = None, service_config_b = None, bridge = False):
     """
     Parse the input and execute the specified action.
 
@@ -69,7 +69,7 @@ def run(plan, command, node_name= None, custom_config = None, icon_service_confi
 
 
 
-def parse_input(plan, action, node_name= None, custom_config = None, icon_service_config = None, decentralize = false, relay_type = None, chain_a = None, chain_b = None, service_config_a = None, service_config_b = None, bridge = false):
+def parse_input(plan, action, node_name= None, custom_config = None, icon_service_config = None, decentralize = False, relay_type = None, chain_a = None, chain_b = None, service_config_a = None, service_config_b = None, bridge = False):
     # start the single node
     if action == "chain":
         if node_name != None:
@@ -130,7 +130,7 @@ def run_node(plan, node_name, decentralize, custom_config = None):
         else: 
             service_config = icon_node_launcher.start_icon_node(plan, custom_config["private_port"], custom_config["private_port"], custom_config["p2p_listen_address"], custom_config["p2p_address"], custom_config["cid"], {}, custom_config["genesis_file_path"], custom_config["genesis_file_name"])
 
-        if decentralize == true:
+        if decentralize == True:
             icon_setup_node.configure_node(service_config["service_name"], service_config["enpoint"], service_config["keystore_path"], service_config["keypassword"], service_config["nid"])
         
         return service_config
@@ -139,7 +139,7 @@ def run_node(plan, node_name, decentralize, custom_config = None):
         return eth_node.start_eth_node_service(plan, node_name)
 
     elif node_name == "archway" or node_name == "neutron":
-        if cutsom_config == None:
+        if custom_config == None:
             return cosmvm_node.start_cosmvm_chains(plan, node_name)
         else:
             return cosmvm_node.start_cosmvm_chains(plan, node_name, custom_config["chain_id"], custom_config["key"], custom_config["password"], custom_config["public_grpc"], custom_config["public_http"], custom_config["public_tcp"], custom_config["public_rpc"])
