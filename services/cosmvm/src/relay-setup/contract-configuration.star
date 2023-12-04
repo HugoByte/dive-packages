@@ -264,7 +264,7 @@ def setup_contracts_for_ibc_wasm(plan, service_name, chain_id, chain_key, networ
     plan.print(contracts)
     return contracts
 
-def configure_connection_for_wasm(plan, service_name, chain_id, chain_key, xcall_connection_address, connection_id, counterparty_port_id, counterparty_nid, client_id, xcall_address):
+def configure_connection_for_wasm(plan, chain, service_name, chain_id, chain_key, xcall_connection_address, connection_id, counterparty_port_id, counterparty_nid, client_id, xcall_address):
     """
     Configure a connection for channel setup IBC on a Neutron node.
 
@@ -282,13 +282,13 @@ def configure_connection_for_wasm(plan, service_name, chain_id, chain_key, xcall
     """
     plan.print("Configure Connection for Channel Setup IBC")
     plan.wait(service_name, recipe = ExecRecipe(command = ["/bin/sh", "-c", "sleep 40s && echo 'success'"]), field = "code", assertion = "==", target_value = 0, timeout = "200s")
-    configure_xcall_connection_result = configure_xcall_connection(plan, service_name, chain_id, chain_key, xcall_connection_address, connection_id, counterparty_port_id, counterparty_nid, client_id)
+    configure_xcall_connection_result = configure_xcall_connection(plan, chain, service_name, chain_id, chain_key, xcall_connection_address, connection_id, counterparty_port_id, counterparty_nid, client_id)
     plan.print(configure_xcall_connection_result)
     plan.wait(service_name, recipe = ExecRecipe(command = ["/bin/sh", "-c", "sleep 40s && echo 'success'"]), field = "code", assertion = "==", target_value = 0, timeout = "200s")
-    configure_xcall_result = set_default_connection_xcall(plan, service_name, chain_id, chain_key, counterparty_nid, xcall_connection_address, xcall_address)
+    configure_xcall_result = set_default_connection_xcall(plan, chain, service_name, chain_id, chain_key, counterparty_nid, xcall_connection_address, xcall_address)
     plan.print(configure_xcall_result)
 
-def deploy_and_configure_xcall_dapp(plan, service_name, chain_id, chain_key, xcall_address, wasm_xcall_connection_address, xcall_connection_address, network_id):
+def deploy_and_configure_xcall_dapp(plan, chain, service_name, chain_id, chain_key, xcall_address, wasm_xcall_connection_address, xcall_connection_address, network_id):
     """
     Deploy and configure the Xcall dapp on a Neutron node.
 
@@ -307,7 +307,7 @@ def deploy_and_configure_xcall_dapp(plan, service_name, chain_id, chain_key, xca
     """
     plan.print("Configure Xcall Dapp")
     xcall_dapp_address = deploy_xcall_dapp(plan, service_name, chain_id, chain_key, xcall_address)
-    add_connection_result = add_connection_xcall_dapp(plan, service_name, chain_id, chain_key, xcall_dapp_address, wasm_xcall_connection_address, xcall_connection_address, network_id)
+    add_connection_result = add_connection_xcall_dapp(plan, chain, service_name, chain_id, chain_key, xcall_dapp_address, wasm_xcall_connection_address, xcall_connection_address, network_id)
     result = {
         "xcall_dapp": xcall_dapp_address,
         "add_connection_result": add_connection_result,
