@@ -1,7 +1,8 @@
 cosmvm_deploy = import_module("../node-setup/deploy.star")
 PASSCODE = "password"
-node_constants = import_module("../../../../../package_io/constants.star")
+node_constants = import_module("../../../../package_io/constants.star")
 password = "password"
+node_details = node_constants.node_details
 
 def deploy_core(plan, service_name, chain_id, chain_key):
     """
@@ -12,7 +13,6 @@ def deploy_core(plan, service_name, chain_id, chain_key):
         service_name (str): The name of the Neutron node service.
         chain_id (str): The chain ID.
         chain_key (str): The chain key.
-
     Returns:
         str: The contract address of ibc-core.
     """
@@ -82,12 +82,13 @@ def deploy_xcall_connection(plan, service_name, chain_id, chain_key, xcall_addre
     contract_addr_xcall_connection = cosmvm_deploy.deploy(plan, chain_id, chain_key, "cw_xcall_ibc_connection", message, service_name)
     return contract_addr_xcall_connection
 
-def bindPort(plan, service_name, chain_id, chain_key, ibc_address, conn_address):
+def bindPort(plan, chain, service_name, chain_id, chain_key, ibc_address, conn_address):
     """
     Bind a mock app to a specific port on a Neutron node.
 
     Args:
         plan (plan): The execution plan.
+        chain (str): Name of chain
         service_name (str): The name of the Neutron node service.
         chain_id (str): The chain ID.
         chain_key (str): The chain key.
@@ -98,12 +99,12 @@ def bindPort(plan, service_name, chain_id, chain_key, ibc_address, conn_address)
         str: The transaction hash of the binding operation.
     """
     plan.print("Binding mock app to the port")
-    exec = ExecRecipe(command = ["/bin/sh", "-c", "echo '%s' | neutrond tx wasm execute %s '{\"bind_port\":{\"address\":\"%s\", \"port_id\":\"xcall\"}}' --from %s --home ./data/%s --keyring-backend test --chain-id %s --output json -y" % (PASSCODE, ibc_address, conn_address, chain_key, chain_id, chain_id)])
+    exec = ExecRecipe(command = ["/bin/sh", "-c", "echo '%s' | %s tx wasm execute %s '{\"bind_port\":{\"address\":\"%s\", \"port_id\":\"xcall\"}}' --from %s --keyring-backend test --chain-id %s --output json -y" % (PASSCODE, node_details[chain]["cmd_keyword"], ibc_address, conn_address, chain_key, chain_id)])
     result = plan.exec(service_name = service_name, recipe = exec)
     tx_hash = result["output"]
     return tx_hash
 
-def registerClient(plan, service_name, chain_id, chain_key, ibc_address, client_address):
+def registerClient(plan, chain, service_name, chain_id, chain_key, ibc_address, client_address):
     """
     Register a client on a Neutron node.
 
@@ -119,8 +120,8 @@ def registerClient(plan, service_name, chain_id, chain_key, ibc_address, client_
         str: The transaction hash of the registration operation.
     """
     plan.print("Registering the client")
-    exec = ExecRecipe(command = ["/bin/sh", "-c", "echo '%s' | neutrond tx wasm execute \"%s\" '{\"register_client\":{\"client_type\":\"iconclient\",\"client_address\":\"%s\"}}' --from %s --home ./data/%s --keyring-backend test --chain-id %s --output json -y" % (PASSCODE, ibc_address, client_address, chain_key, chain_id, chain_id)])
-    result = plan.exec(service_name = service_name, recipe = exec)
+    exec = ExecRecipe(command = ["/bin/sh", "-c", "echo '%s' | %s tx wasm execute \"%s\" '{\"register_client\":{\"client_type\":\"iconclient\",\"client_address\":\"%s\"}}' --from %s --keyring-backend test --chain-id %s --output json -y" % (PASSCODE, node_details[chain]["cmd_keyword"], ibc_address, client_address, chain_key, chain_id)])
+    result = plan.exec(service_name=service_name, recipe=exec)
     tx_hash = result["output"]
     return tx_hash
 
@@ -143,7 +144,7 @@ def deploy_xcall_dapp(plan, service_name, chain_id, chain_key, xcall_address):
     xcall_dapp_address = cosmvm_deploy.deploy(plan, chain_id, chain_key, "cw_mock_dapp_multi", message, service_name)
     return xcall_dapp_address
 
-def add_connection_xcall_dapp(plan, service_name, chain_id, chain_key, xcall_dapp_address, wasm_xcall_connection_address, xcall_connection_address, java_network_id):
+def add_connection_xcall_dapp(plan, chain, service_name, chain_id, chain_key, xcall_dapp_address, wasm_xcall_connection_address, xcall_connection_address, java_network_id):
     """
     Configure the xcall dapp by adding a connection.
 
@@ -162,12 +163,13 @@ def add_connection_xcall_dapp(plan, service_name, chain_id, chain_key, xcall_dap
     """
     plan.print("Configuring xcall dapp")
     params = '{"add_connection":{"src_endpoint":"%s","dest_endpoint":"%s","network_id":"%s"}}' % (wasm_xcall_connection_address, xcall_connection_address, java_network_id)
-    exec = ExecRecipe(command = ["/bin/sh", "-c", "echo '%s' | neutrond tx wasm execute %s '%s' --from %s --home ./data/%s --keyring-backend test --chain-id %s --output json -y" % (PASSCODE, xcall_dapp_address, params, chain_key, chain_id, chain_id)])
-    result = plan.exec(service_name = service_name, recipe = exec)
+    exec = ExecRecipe(command=  ["/bin/sh", "-c", "echo '%s' | %s tx wasm execute %s '%s' --from %s --keyring-backend test --chain-id %s --output json -y" % (PASSCODE, node_details[chain]["cmd_keyword"], xcall_dapp_address, params, chain_key, chain_id)])
+    result = plan.exec(service_name=service_name, recipe=exec)
     tx_hash = result["output"]
     return tx_hash
 
-def configure_xcall_connection(plan, service_name, chain_id, chain_key, xcall_connection_address, connection_id, counterparty_port_id, counterparty_nid, client_id):
+
+def configure_xcall_connection(plan, chain, service_name, chain_id, chain_key, xcall_connection_address, connection_id, counterparty_port_id, counterparty_nid, client_id):
     """
     Configure an Xcall connection on a Neutron node.
 
@@ -184,10 +186,11 @@ def configure_xcall_connection(plan, service_name, chain_id, chain_key, xcall_co
     """
     plan.print("Configuring Xcall Connections Connection")
     params = '{"configure_connection":{"connection_id":"%s","counterparty_port_id":"%s","counterparty_nid":"%s","client_id":"%s","timeout_height":30000}}' % (connection_id, counterparty_port_id, counterparty_nid, client_id)
-    exec_cmd = ["/bin/sh", "-c", "echo '%s'| neutrond tx wasm execute %s '%s' --from %s --home ./data/%s --keyring-backend test --chain-id %s --output json -y" % (PASSCODE, xcall_connection_address, params, chain_key, chain_id, chain_id)]
-    result = plan.exec(service_name = service_name, recipe = ExecRecipe(command = exec_cmd))
+    exec_cmd = ["/bin/sh", "-c", "echo '%s'| %s tx wasm execute %s '%s' --from %s --keyring-backend test --chain-id %s --output json -y" % (PASSCODE, node_details[chain]["cmd_keyword"], xcall_connection_address, params, chain_key, chain_id)]
+    result = plan.exec(service_name=service_name, recipe=ExecRecipe(command=exec_cmd))
 
-def set_default_connection_xcall(plan, service_name, chain_id, chain_key, network_id, xcall_connection_address, xcall_address):
+
+def set_default_connection_xcall(plan, chain, service_name, chain_id, chain_key, network_id, xcall_connection_address, xcall_address):
     """
     Set the default Xcall connection on a Neutron node.
 
@@ -202,8 +205,8 @@ def set_default_connection_xcall(plan, service_name, chain_id, chain_key, networ
     """
     plan.print("Setting Xcall default connection")
     params = '{"set_default_connection":{"nid":"%s","address":"%s"}}' % (network_id, xcall_connection_address)
-    exec_cmd = ["/bin/sh", "-c", "echo '%s'| neutrond tx wasm execute %s '%s' --from %s --home ./data/%s --keyring-backend test --chain-id %s --output json -y" % (PASSCODE, xcall_address, params, chain_key, chain_id, chain_id)]
-    result = plan.exec(service_name = service_name, recipe = ExecRecipe(command = exec_cmd))
+    exec_cmd = ["/bin/sh", "-c", "echo '%s'| %s tx wasm execute %s '%s' --from %s --keyring-backend test --chain-id %s --output json -y" % (PASSCODE, node_details[chain]["cmd_keyword"], xcall_address, params, chain_key, chain_id)]
+    result = plan.exec(service_name = service_name, recipe = ExecRecipe(command=exec_cmd))
 
 def check_tx_result(plan, tx_hash, service_name):
     """

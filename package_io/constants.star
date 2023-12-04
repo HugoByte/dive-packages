@@ -139,3 +139,16 @@ NEUTRON_NODE2_CONFIG = struct(
     key = "test-key",
     password = "clock post desk civil pottery foster expand merit dash seminar song memory figure uniform spice circle try happy obvious trash crime hybrid hood cushion",
 )
+
+node_details = {
+    "archway" : {
+        "node_constants" : ARCHWAY_SERVICE_CONFIG,
+        "cmd_keyword" : "archwayd",
+        "start_node_cmd": "cd ../..{} && chmod +x start_archway.sh && ./start_archway.sh {} {} {}",
+        },
+    "neutron" : {
+        "node_constants" : NEUTRON_SERVICE_CONFIG,
+        "cmd_keyword" : "neutrond",
+        "start_node_cmd": "chmod +x ../..{}init.sh && chmod +x ../..{}start_neutron.sh && chmod +x ../..{}init-neutrond.sh && key={} password=\"{}\" CHAINID={} ../..{}init.sh && CHAINID={} ../..{}init-neutrond.sh && CHAINID={} ../..{}start_neutron.sh",
+        }
+    }

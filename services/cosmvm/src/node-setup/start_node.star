@@ -1,9 +1,8 @@
-# Import necessary modules
-constants = import_module("../../../../../package_io/constants.star")
-cosmos_node_constants = constants.ARCHWAY_SERVICE_CONFIG
+# Import constants from an external modules
+constants = import_module("../../../../package_io/constants.star")
 network_port_keys_and_ip = constants.NETWORK_PORT_KEYS_AND_IP_ADDRESS
 
-def start_cosmos_node(plan, chain_id, key, password, service_name, private_grpc, private_http, private_tcp, private_rpc, public_grpc, public_http, public_tcp, public_rpc):
+def start_cosmos_node(plan, chain_name, chain_id, key, password, service_name, private_grpc, private_http, private_tcp, private_rpc, public_grpc, public_http, public_tcp, public_rpc):
     """
     Configure and start a Cosmos node for Archway.
 
@@ -21,22 +20,25 @@ def start_cosmos_node(plan, chain_id, key, password, service_name, private_grpc,
         public_http (int): Public HTTP port.
         public_tcp (int): Public TCP port.
         public_rpc (int): Public RPC port.
+        chain_name (str): The name of the blockchain network.
 
     Returns:
         struct: Configuration information for the service.
     """
+     
     plan.print("Launching " + service_name + " deployment service")
+    node_config = constants.node_details[chain_name]
+    chain_node_constants = node_config["node_constants"]
+    command = format_command(chain_name, chain_node_constants.path, node_config["start_node_cmd"], chain_id, key, password)
 
-    start_script_file = "start-script-%s" % chain_id
-    contract_files = "contract-%s" % chain_id
-    plan.upload_files(src = cosmos_node_constants.start_script, name = start_script_file)
-    plan.upload_files(src = cosmos_node_constants.default_contract_path, name = contract_files)
+    plan.upload_files(src = "../../static_files/scripts", name = "script_files_%s" % (chain_name))
+    plan.upload_files(src = "../../static_files/contracts", name = "contract_files_%s" % (chain_name))
 
-    cosmwasm_node_config = ServiceConfig(
-        image = cosmos_node_constants.image,
+    chain_node_config = ServiceConfig(
+        image = chain_node_constants.image,
         files = {
-            cosmos_node_constants.path: start_script_file,
-            cosmos_node_constants.contract_path: contract_files,
+            chain_node_constants.contract_path: "contract_files_%s" % (chain_name),
+            chain_node_constants.path: "script_files_%s" % (chain_name),
         },
         ports = {
             network_port_keys_and_ip.grpc: PortSpec(number = private_grpc, transport_protocol = network_port_keys_and_ip.tcp.upper(), application_protocol = network_port_keys_and_ip.http),
@@ -50,16 +52,22 @@ def start_cosmos_node(plan, chain_id, key, password, service_name, private_grpc,
             network_port_keys_and_ip.tcp: PortSpec(number = public_tcp, transport_protocol = network_port_keys_and_ip.tcp.upper(), application_protocol = network_port_keys_and_ip.http),
             network_port_keys_and_ip.rpc: PortSpec(number = public_rpc, transport_protocol = network_port_keys_and_ip.tcp.upper(), application_protocol = network_port_keys_and_ip.http),
         },
-        entrypoint = ["/bin/sh", "-c", "cd ../..%s && chmod +x start.sh && ./start.sh %s %s %s" % (cosmos_node_constants.path, chain_id, key, password)],
+        entrypoint = ["/bin/sh", "-c"], 
+        cmd = [command],
+        env_vars = {
+            "RUN_BACKGROUND": "0",
+        },
     )
 
-    node_service_response = plan.add_service(name = service_name, config = cosmwasm_node_config)
-
+    # Add the service to the plan
+    node_service_response = plan.add_service(name = service_name, config = chain_node_config)
     plan.print(node_service_response)
 
-    public_url = get_service_url(network_port_keys_and_ip.public_ip_address, cosmwasm_node_config.public_ports)
+    # Get public and private url, (private IP returned by kurtosis service)
+    public_url = get_service_url(network_port_keys_and_ip.public_ip_address, chain_node_config.public_ports)
     private_url = get_service_url(node_service_response.ip_address, node_service_response.ports)
 
+    #return service name  and endpoints
     return struct(
         service_name = service_name,
         endpoint = private_url,
@@ -68,9 +76,26 @@ def start_cosmos_node(plan, chain_id, key, password, service_name, private_grpc,
         chain_key = key,
     )
 
-# returns url
 def get_service_url(ip_address, ports):
-    port_id = ports["rpc"].number
-    protocol = ports["rpc"].application_protocol
+    """
+    Get the service URL based on IP address and ports.
+
+    Args:
+        ip_address (str): IP address of the service.
+        ports (dict): Dictionary of service ports.
+
+    Returns:
+        str: The constructed service URL.
+    """
+    port_id = ports[network_port_keys_and_ip.rpc].number
+    protocol = ports[network_port_keys_and_ip.rpc].application_protocol
     url = "{0}://{1}:{2}".format(protocol, ip_address, port_id)
     return url
+
+def format_command(chain_name, path, command, chain_id, key, password,):
+    if chain_name == "archway":
+        new_cmd = command.format(path, chain_id, key, password)
+    elif chain_name == "neutron":
+        new_cmd = command.format(path, path, path, key, password, chain_id, path, chain_id, path, chain_id, path)
+
+    return new_cmd
