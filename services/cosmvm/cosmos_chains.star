@@ -62,11 +62,12 @@ def start_node_services_neutron(plan):
     Returns:
         struct: Configuration information for the source and destination services.
     """
+    chain_name = "neutron"
     # Start the source and destination Neutron node services
     service_name_src = "{0}-{1}".format(neutron_service_config.service_name, neutron_node1_config.chain_id)
     service_name_dst = "{0}-{1}".format(neutron_service_config.service_name, neutron_node2_config.chain_id)
-    src_chain_response = cosmos_node_service.start_neutron_node(plan, neutron_node1_config.chain_id, neutron_node1_config.key, neutron_node1_config.password, service_name_src, neutron_private_ports.http, neutron_private_ports.rpc, neutron_private_ports.tcp, neutron_private_ports.grpc, neutron_node1_config.http, neutron_node1_config.rpc, neutron_node1_config.tcp, neutron_node1_config.grpc)
-    dst_chain_response = cosmos_node_service.start_neutron_node(plan, neutron_node2_config.chain_id, neutron_node2_config.key, neutron_node2_config.password, service_name_dst, neutron_private_ports.http, neutron_private_ports.rpc, neutron_private_ports.tcp, neutron_private_ports.grpc, neutron_node2_config.http, neutron_node2_config.rpc, neutron_node2_config.tcp, neutron_node2_config.grpc)
+    src_chain_response = cosmos_node_service.start_cosmos_node(plan, chain_name, neutron_node1_config.chain_id, neutron_node1_config.key, neutron_node1_config.password, service_name_src, neutron_private_ports.http, neutron_private_ports.rpc, neutron_private_ports.tcp, neutron_private_ports.grpc, neutron_node1_config.http, neutron_node1_config.rpc, neutron_node1_config.tcp, neutron_node1_config.grpc)
+    dst_chain_response = cosmos_node_service.start_cosmos_node(plan, chain_name, neutron_node2_config.chain_id, neutron_node2_config.key, neutron_node2_config.password, service_name_dst, neutron_private_ports.http, neutron_private_ports.rpc, neutron_private_ports.tcp, neutron_private_ports.grpc, neutron_node2_config.http, neutron_node2_config.rpc, neutron_node2_config.tcp, neutron_node2_config.grpc)
 
     # Create configuration dictionaries for both services
     src_service_config = {
@@ -100,11 +101,13 @@ def start_node_services_archway(plan):
     Returns:
         struct: Configuration information for source and destination services.
     """
+    chain_name = "archway"
     service_name_src = "{0}-{1}".format(archway_service_config.service_name, archway_node0_config.chain_id)
     service_name_dst = "{0}-{1}".format(archway_service_config.service_name, archway_node1_config.chain_id)
 
     src_config = parser.struct_to_dict(cosmos_node_service.start_cosmos_node(
         plan,
+        chain_name,
         archway_node0_config.chain_id,
         archway_node0_config.key,
         archway_service_config.password,
@@ -121,6 +124,7 @@ def start_node_services_archway(plan):
 
     dst_config = parser.struct_to_dict(cosmos_node_service.start_cosmos_node(
         plan,
+        chain_name,
         archway_node1_config.chain_id,
         archway_node1_config.key,
         archway_service_config.password,

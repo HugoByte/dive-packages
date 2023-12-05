@@ -31,14 +31,14 @@ def start_cosmos_node(plan, chain_name, chain_id, key, password, service_name, p
     chain_node_constants = node_config["node_constants"]
     command = format_command(chain_name, chain_node_constants.path, node_config["start_node_cmd"], chain_id, key, password)
 
-    plan.upload_files(src = "../../static_files/scripts", name = "script_files_%s" % (chain_name))
-    plan.upload_files(src = "../../static_files/contracts", name = "contract_files_%s" % (chain_name))
+    plan.upload_files(src = "../../static_files/scripts", name = "script_files_%s" % (service_name))
+    plan.upload_files(src = "../../static_files/contracts", name = "contract_files_%s" % (service_name))
 
     chain_node_config = ServiceConfig(
         image = chain_node_constants.image,
         files = {
-            chain_node_constants.contract_path: "contract_files_%s" % (chain_name),
-            chain_node_constants.path: "script_files_%s" % (chain_name),
+            chain_node_constants.contract_path: "contract_files_%s" % (service_name),
+            chain_node_constants.path: "script_files_%s" % (service_name),
         },
         ports = {
             network_port_keys_and_ip.grpc: PortSpec(number = private_grpc, transport_protocol = network_port_keys_and_ip.tcp.upper(), application_protocol = network_port_keys_and_ip.http),

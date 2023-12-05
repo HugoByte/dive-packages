@@ -99,11 +99,11 @@ def setup_icon_chain(plan, chain_config):
 
     return deploy_icon_contracts, src_chain_data
 
-def setup_cosmos_chain(plan, chain ,chain_config):
-    deploy_cosmos_contracts = cosmos_relay_setup.setup_contracts_for_ibc_wasm(plan, chain_config["service_name"], chain_config["chain_id"], chain_config["chain_key"], chain_config["chain_id"], "stake", "xcall")
-    cosmos_relay_setup.registerClient(plan, chain, chain_config["service_name"], chain_config["chain_id"], chain_config["chain_key"], deploy_cosmos_contracts["ibc_core"], deploy_cosmos_contracts["light_client"])
+def setup_cosmos_chain(plan, chain_name, chain_config):
+    deploy_cosmos_contracts = cosmos_relay_setup.setup_contracts_for_ibc_wasm(plan, chain_name, chain_config["service_name"], chain_config["chain_id"], chain_config["chain_key"], chain_config["chain_id"], "stake", "xcall")
+    cosmos_relay_setup.registerClient(plan, chain_name, chain_config["service_name"], chain_config["chain_id"], chain_config["chain_key"], deploy_cosmos_contracts["ibc_core"], deploy_cosmos_contracts["light_client"])
     plan.wait(service_name = chain_config["service_name"], recipe = ExecRecipe(command = ["/bin/sh", "-c", "sleep 10s && echo 'success'"]), field = "code", assertion = "==", target_value = 0, timeout = "200s")
-    cosmos_relay_setup.bindPort(plan, chain, chain_config["service_name"], chain_config["chain_id"], chain_config["chain_key"], deploy_cosmos_contracts["ibc_core"], deploy_cosmos_contracts["xcall_connection"])
+    cosmos_relay_setup.bindPort(plan, chain_name, chain_config["service_name"], chain_config["chain_id"], chain_config["chain_key"], deploy_cosmos_contracts["ibc_core"], deploy_cosmos_contracts["xcall_connection"])
 
     dst_chain_data = {
         "chain_id": chain_config["chain_id"],
@@ -173,7 +173,6 @@ def start_cosmos_relay(plan, src_chain, dst_chain, src_config, dst_config):
     )
 
     plan.print(relay_service)
-
     plan.add_service(name = ibc_relay_config.relay_service_name, config = relay_service)
 
     return struct(
@@ -183,19 +182,14 @@ def start_cosmos_relay(plan, src_chain, dst_chain, src_config, dst_config):
 def start_cosmos_relay_for_icon_to_cosmos(plan, src_chain, dst_chain, src_chain_config, dst_chain_config):
     plan.print("starting the cosmos relay for icon to cosmos")
 
-    if dst_chain == "archway":
-        plan.upload_files(src = ibc_relay_config.config_file_path, name = "archway_config")
-    elif dst_chain == "neutron":
-        plan.upload_files(src = ibc_relay_config.config_file_path, name = "neutron_config")
-
+    file_name = "%s_config" % dst_chain
+    plan.upload_files(src = ibc_relay_config.config_file_path, name = file_name)
     plan.upload_files(src = ibc_relay_config.icon_keystore_file, name = "icon-keystore")
-
 
     if dst_chain == "archway":
         wasm_config = read_file(ibc_relay_config.ibc_relay_wasm_file_template)
     elif dst_chain == "neutron":
         wasm_config = read_file(ibc_relay_config.ibc_relay_neutron_wasm_file_template)
-
     java_config = read_file(ibc_relay_config.ibc_relay_java_file_template)
 
     cfg_template_data_wasm = {

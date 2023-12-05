@@ -4,7 +4,7 @@ node_constants = import_module("../../../../package_io/constants.star")
 password = "password"
 node_details = node_constants.node_details
 
-def deploy_core(plan, service_name, chain_id, chain_key):
+def deploy_core(plan, chain_name, service_name, chain_id, chain_key):
     """
     Deploy the ibc-core contract on a Neutron node.
 
@@ -18,10 +18,10 @@ def deploy_core(plan, service_name, chain_id, chain_key):
     """
     plan.print("Deploying ibc-core contract")
     message = '{}'
-    contract_addr_ibc_core = cosmvm_deploy.deploy(plan, chain_id, chain_key, "cw_ibc_core", message, service_name)
+    contract_addr_ibc_core = cosmvm_deploy.deploy(plan, chain_name, chain_id, chain_key, "cw_ibc_core", message, service_name)
     return contract_addr_ibc_core
 
-def deploy_xcall(plan, service_name, chain_id, chain_key, network_id, denom):
+def deploy_xcall(plan, chain_name, service_name, chain_id, chain_key, network_id, denom):
     """
     Deploy the xcall contract on a Neutron node.
 
@@ -38,10 +38,10 @@ def deploy_xcall(plan, service_name, chain_id, chain_key, network_id, denom):
     """
     plan.print("Deploying xcall contract")
     message = '{"network_id":"%s", "denom":"%s"}' % (network_id, denom)
-    contract_addr_xcall = cosmvm_deploy.deploy(plan, chain_id, chain_key, "cw_xcall", message, service_name)
+    contract_addr_xcall = cosmvm_deploy.deploy(plan, chain_name, chain_id, chain_key, "cw_xcall", message, service_name)
     return contract_addr_xcall
 
-def deploy_light_client(plan, service_name, chain_id, chain_key, ibc_host_address):
+def deploy_light_client(plan, chain_name, service_name, chain_id, chain_key, ibc_host_address):
     """
     Deploy the light client on a Neutron node.
 
@@ -57,10 +57,10 @@ def deploy_light_client(plan, service_name, chain_id, chain_key, ibc_host_addres
     """
     plan.print("Deploying the light client")
     message = '{"ibc_host":"%s"}' % (ibc_host_address)
-    contract_addr_light_client = cosmvm_deploy.deploy(plan, chain_id, chain_key, "cw_icon_light_client", message, service_name)
+    contract_addr_light_client = cosmvm_deploy.deploy(plan, chain_name, chain_id, chain_key, "cw_icon_light_client", message, service_name)
     return contract_addr_light_client
 
-def deploy_xcall_connection(plan, service_name, chain_id, chain_key, xcall_address, ibc_host, port_id, denom):
+def deploy_xcall_connection(plan, chain_name, service_name, chain_id, chain_key, xcall_address, ibc_host, port_id, denom):
     """
     Deploy the xcall IBC connection contract on a Neutron node.
 
@@ -79,10 +79,10 @@ def deploy_xcall_connection(plan, service_name, chain_id, chain_key, xcall_addre
     """
     plan.print("Deploying the xcall ibc connection")
     message = '{"ibc_host":"%s","port_id":"%s","xcall_address":"%s", "denom":"%s"}' % (ibc_host, port_id, xcall_address, denom)
-    contract_addr_xcall_connection = cosmvm_deploy.deploy(plan, chain_id, chain_key, "cw_xcall_ibc_connection", message, service_name)
+    contract_addr_xcall_connection = cosmvm_deploy.deploy(plan, chain_name, chain_id, chain_key, "cw_xcall_ibc_connection", message, service_name)
     return contract_addr_xcall_connection
 
-def bindPort(plan, chain, service_name, chain_id, chain_key, ibc_address, conn_address):
+def bindPort(plan, chain_name, service_name, chain_id, chain_key, ibc_address, conn_address):
     """
     Bind a mock app to a specific port on a Neutron node.
 
@@ -99,18 +99,20 @@ def bindPort(plan, chain, service_name, chain_id, chain_key, ibc_address, conn_a
         str: The transaction hash of the binding operation.
     """
     plan.print("Binding mock app to the port")
-    exec = ExecRecipe(command = ["/bin/sh", "-c", "echo '%s' | %s tx wasm execute %s '{\"bind_port\":{\"address\":\"%s\", \"port_id\":\"xcall\"}}' --from %s --keyring-backend test --chain-id %s --output json -y" % (PASSCODE, node_details[chain]["cmd_keyword"], ibc_address, conn_address, chain_key, chain_id)])
+    bindPort_cmd = node_details[chain_name]["bindPort_cmd"]
+    exec_cmd = format_command(chain_name, bindPort_cmd, ibc_address, conn_address, chain_key, chain_id)
+    exec = ExecRecipe(command = ["/bin/sh", "-c", exec_cmd])
     result = plan.exec(service_name = service_name, recipe = exec)
     tx_hash = result["output"]
     return tx_hash
 
-def registerClient(plan, chain, service_name, chain_id, chain_key, ibc_address, client_address):
+def registerClient(plan, chain_name, service_name, chain_id, chain_key, ibc_address, client_address):
     """
     Register a client on a Neutron node.
 
     Args:
         plan (plan): The execution plan.
-        service_name (str): The name of the Neutron node service.
+        service_name (str): The name of the Neutron nodchain_id, ibc_address, conn_address, chain_keye service.
         chain_id (str): The chain ID.
         chain_key (str): The chain key.
         ibc_address (str): The IBC contract address.
@@ -120,12 +122,15 @@ def registerClient(plan, chain, service_name, chain_id, chain_key, ibc_address, 
         str: The transaction hash of the registration operation.
     """
     plan.print("Registering the client")
-    exec = ExecRecipe(command = ["/bin/sh", "-c", "echo '%s' | %s tx wasm execute \"%s\" '{\"register_client\":{\"client_type\":\"iconclient\",\"client_address\":\"%s\"}}' --from %s --keyring-backend test --chain-id %s --output json -y" % (PASSCODE, node_details[chain]["cmd_keyword"], ibc_address, client_address, chain_key, chain_id)])
+    registerClient_cmd = node_details[chain_name]["registerClient_cmd"]
+    exec_cmd = format_command(chain_name, registerClient_cmd, ibc_address, client_address, chain_key, chain_id)
+    exec = ExecRecipe(command = ["/bin/sh", "-c", exec_cmd])
+
     result = plan.exec(service_name=service_name, recipe=exec)
     tx_hash = result["output"]
     return tx_hash
 
-def deploy_xcall_dapp(plan, service_name, chain_id, chain_key, xcall_address):
+def deploy_xcall_dapp(plan, chain_name, service_name, chain_id, chain_key, xcall_address):
     """
     Deploy the xcall dapp on a Neutron node.
 
@@ -141,10 +146,10 @@ def deploy_xcall_dapp(plan, service_name, chain_id, chain_key, xcall_address):
     """
     plan.print("Deploying the xcall dapp")
     message = '{"address":"%s"}' % (xcall_address)
-    xcall_dapp_address = cosmvm_deploy.deploy(plan, chain_id, chain_key, "cw_mock_dapp_multi", message, service_name)
+    xcall_dapp_address = cosmvm_deploy.deploy(plan, chain_name, chain_id, chain_key, "cw_mock_dapp_multi", message, service_name)
     return xcall_dapp_address
 
-def add_connection_xcall_dapp(plan, chain, service_name, chain_id, chain_key, xcall_dapp_address, wasm_xcall_connection_address, xcall_connection_address, java_network_id):
+def add_connection_xcall_dapp(plan, chain_name, service_name, chain_id, chain_key, xcall_dapp_address, wasm_xcall_connection_address, xcall_connection_address, java_network_id):
     """
     Configure the xcall dapp by adding a connection.
 
@@ -163,13 +168,17 @@ def add_connection_xcall_dapp(plan, chain, service_name, chain_id, chain_key, xc
     """
     plan.print("Configuring xcall dapp")
     params = '{"add_connection":{"src_endpoint":"%s","dest_endpoint":"%s","network_id":"%s"}}' % (wasm_xcall_connection_address, xcall_connection_address, java_network_id)
-    exec = ExecRecipe(command=  ["/bin/sh", "-c", "echo '%s' | %s tx wasm execute %s '%s' --from %s --keyring-backend test --chain-id %s --output json -y" % (PASSCODE, node_details[chain]["cmd_keyword"], xcall_dapp_address, params, chain_key, chain_id)])
+    
+    add_connection_xcall_dapp_cmd = node_details[chain_name]["add_connection_xcall_dapp_cmd"]
+    exec_cmd = format_command(chain_name, add_connection_xcall_dapp_cmd, xcall_dapp_address, params, chain_key, chain_id)
+    exec = ExecRecipe(command=  ["/bin/sh", "-c", exec_cmd])
+    
     result = plan.exec(service_name=service_name, recipe=exec)
     tx_hash = result["output"]
     return tx_hash
 
 
-def configure_xcall_connection(plan, chain, service_name, chain_id, chain_key, xcall_connection_address, connection_id, counterparty_port_id, counterparty_nid, client_id):
+def configure_xcall_connection(plan, chain_name, service_name, chain_id, chain_key, xcall_connection_address, connection_id, counterparty_port_id, counterparty_nid, client_id):
     """
     Configure an Xcall connection on a Neutron node.
 
@@ -186,11 +195,13 @@ def configure_xcall_connection(plan, chain, service_name, chain_id, chain_key, x
     """
     plan.print("Configuring Xcall Connections Connection")
     params = '{"configure_connection":{"connection_id":"%s","counterparty_port_id":"%s","counterparty_nid":"%s","client_id":"%s","timeout_height":30000}}' % (connection_id, counterparty_port_id, counterparty_nid, client_id)
-    exec_cmd = ["/bin/sh", "-c", "echo '%s'| %s tx wasm execute %s '%s' --from %s --keyring-backend test --chain-id %s --output json -y" % (PASSCODE, node_details[chain]["cmd_keyword"], xcall_connection_address, params, chain_key, chain_id)]
-    result = plan.exec(service_name=service_name, recipe=ExecRecipe(command=exec_cmd))
+
+    configure_xcall_connection_cmd = node_details[chain_name]["configure_xcall_connection_cmd"]
+    exec_cmd = format_command(chain_name, configure_xcall_connection_cmd, xcall_connection_address, params, chain_key, chain_id)
+    result = plan.exec(service_name=service_name, recipe=ExecRecipe(command=["/bin/sh", "-c", exec_cmd]))
 
 
-def set_default_connection_xcall(plan, chain, service_name, chain_id, chain_key, network_id, xcall_connection_address, xcall_address):
+def set_default_connection_xcall(plan, chain_name, service_name, chain_id, chain_key, network_id, xcall_connection_address, xcall_address):
     """
     Set the default Xcall connection on a Neutron node.
 
@@ -205,8 +216,9 @@ def set_default_connection_xcall(plan, chain, service_name, chain_id, chain_key,
     """
     plan.print("Setting Xcall default connection")
     params = '{"set_default_connection":{"nid":"%s","address":"%s"}}' % (network_id, xcall_connection_address)
-    exec_cmd = ["/bin/sh", "-c", "echo '%s'| %s tx wasm execute %s '%s' --from %s --keyring-backend test --chain-id %s --output json -y" % (PASSCODE, node_details[chain]["cmd_keyword"], xcall_address, params, chain_key, chain_id)]
-    result = plan.exec(service_name = service_name, recipe = ExecRecipe(command=exec_cmd))
+    set_default_connection_xcall_cmd = node_details[chain_name]["set_default_connection_xcall_cmd"]
+    exec_cmd = format_command(chain_name, set_default_connection_xcall_cmd, xcall_address, params, chain_key, chain_id)
+    result = plan.exec(service_name = service_name, recipe = ExecRecipe(command=["/bin/sh", "-c", exec_cmd]))
 
 def check_tx_result(plan, tx_hash, service_name):
     """
@@ -233,7 +245,7 @@ def check_tx_result(plan, tx_hash, service_name):
     result = plan.wait(service_name = service_name, recipe = post_request, field = "extract.status", assertion = "==", target_value = 0)
     return result
 
-def setup_contracts_for_ibc_wasm(plan, service_name, chain_id, chain_key, network_id, denom, port_id):
+def setup_contracts_for_ibc_wasm(plan, chain_name, service_name, chain_id, chain_key, network_id, denom, port_id):
     """
     Deploy contracts for IBC setup on a Neutron node.
 
@@ -250,10 +262,10 @@ def setup_contracts_for_ibc_wasm(plan, service_name, chain_id, chain_key, networ
         dict: A dictionary containing contract addresses.
     """
     plan.print("Deploying Contracts for IBC Setup")
-    ibc_core_address = deploy_core(plan, service_name, chain_id, chain_key)
-    light_client_address = deploy_light_client(plan, service_name, chain_id, chain_key, ibc_core_address)
-    xcall_address = deploy_xcall(plan, service_name, chain_id, chain_key, network_id, denom)
-    xcall_connection_address = deploy_xcall_connection(plan, service_name, chain_id, chain_key, xcall_address, ibc_core_address, port_id, denom)
+    ibc_core_address = deploy_core(plan, chain_name, service_name, chain_id, chain_key)
+    light_client_address = deploy_light_client(plan, chain_name, service_name, chain_id, chain_key, ibc_core_address)
+    xcall_address = deploy_xcall(plan, chain_name, service_name, chain_id, chain_key, network_id, denom)
+    xcall_connection_address = deploy_xcall_connection(plan, chain_name, service_name, chain_id, chain_key, xcall_address, ibc_core_address, port_id, denom)
     contracts = {
         "ibc_core": ibc_core_address,
         "xcall": xcall_address,
@@ -264,7 +276,7 @@ def setup_contracts_for_ibc_wasm(plan, service_name, chain_id, chain_key, networ
     plan.print(contracts)
     return contracts
 
-def configure_connection_for_wasm(plan, chain, service_name, chain_id, chain_key, xcall_connection_address, connection_id, counterparty_port_id, counterparty_nid, client_id, xcall_address):
+def configure_connection_for_wasm(plan, chain_name, service_name, chain_id, chain_key, xcall_connection_address, connection_id, counterparty_port_id, counterparty_nid, client_id, xcall_address):
     """
     Configure a connection for channel setup IBC on a Neutron node.
 
@@ -282,13 +294,13 @@ def configure_connection_for_wasm(plan, chain, service_name, chain_id, chain_key
     """
     plan.print("Configure Connection for Channel Setup IBC")
     plan.wait(service_name, recipe = ExecRecipe(command = ["/bin/sh", "-c", "sleep 40s && echo 'success'"]), field = "code", assertion = "==", target_value = 0, timeout = "200s")
-    configure_xcall_connection_result = configure_xcall_connection(plan, chain, service_name, chain_id, chain_key, xcall_connection_address, connection_id, counterparty_port_id, counterparty_nid, client_id)
+    configure_xcall_connection_result = configure_xcall_connection(plan, chain_name, service_name, chain_id, chain_key, xcall_connection_address, connection_id, counterparty_port_id, counterparty_nid, client_id)
     plan.print(configure_xcall_connection_result)
     plan.wait(service_name, recipe = ExecRecipe(command = ["/bin/sh", "-c", "sleep 40s && echo 'success'"]), field = "code", assertion = "==", target_value = 0, timeout = "200s")
-    configure_xcall_result = set_default_connection_xcall(plan, chain, service_name, chain_id, chain_key, counterparty_nid, xcall_connection_address, xcall_address)
+    configure_xcall_result = set_default_connection_xcall(plan, chain_name, service_name, chain_id, chain_key, counterparty_nid, xcall_connection_address, xcall_address)
     plan.print(configure_xcall_result)
 
-def deploy_and_configure_xcall_dapp(plan, chain, service_name, chain_id, chain_key, xcall_address, wasm_xcall_connection_address, xcall_connection_address, network_id):
+def deploy_and_configure_xcall_dapp(plan, chain_name, service_name, chain_id, chain_key, xcall_address, wasm_xcall_connection_address, xcall_connection_address, network_id):
     """
     Deploy and configure the Xcall dapp on a Neutron node.
 
@@ -306,10 +318,18 @@ def deploy_and_configure_xcall_dapp(plan, chain, service_name, chain_id, chain_k
         dict: A dictionary containing the Xcall dapp address and the result of adding a connection.
     """
     plan.print("Configure Xcall Dapp")
-    xcall_dapp_address = deploy_xcall_dapp(plan, service_name, chain_id, chain_key, xcall_address)
-    add_connection_result = add_connection_xcall_dapp(plan, chain, service_name, chain_id, chain_key, xcall_dapp_address, wasm_xcall_connection_address, xcall_connection_address, network_id)
+    xcall_dapp_address = deploy_xcall_dapp(plan, chain_name, service_name, chain_id, chain_key, xcall_address)
+    add_connection_result = add_connection_xcall_dapp(plan, chain_name, service_name, chain_id, chain_key, xcall_dapp_address, wasm_xcall_connection_address, xcall_connection_address, network_id)
     result = {
         "xcall_dapp": xcall_dapp_address,
         "add_connection_result": add_connection_result,
     }
     return result
+
+def format_command(chain_name, command, param1, param2, chain_key, chain_id):
+    if chain_name == "archway":
+        exec_cmd = command.format(PASSCODE, param1, param2, chain_key, chain_id)
+    elif chain_name == "neutron":
+        exec_cmd = command.format(PASSCODE, param1, param2, chain_key, chain_id, chain_id)
+    
+    return exec_cmd

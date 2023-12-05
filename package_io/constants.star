@@ -144,11 +144,50 @@ node_details = {
     "archway" : {
         "node_constants" : ARCHWAY_SERVICE_CONFIG,
         "cmd_keyword" : "archwayd",
-        "start_node_cmd": "cd ../..{} && chmod +x start_archway.sh && ./start_archway.sh {} {} {}",
-        },
+        "contract_path" : "../contracts/{}.wasm",
+        "path" : "",
+        
+        "start_node_cmd" : 
+            "cd ../..{} && chmod +x start_archway.sh && ./start_archway.sh {} {} {}",
+        
+        "bindPort_cmd" : 
+            '''echo '{}' | archwayd tx wasm execute "{}" '{{"bind_port":{{"address":"{}", "port_id":"xcall"}}}}' --from {} --keyring-backend test --chain-id {} --output json -y''',
+        
+        "registerClient_cmd" : 
+            '''echo '{}' | archwayd tx wasm execute "{}" '{{"register_client":{{"client_type":"iconclient","client_address":"{}"}}}}' --from {} --keyring-backend test --chain-id {} --output json -y''',
+        
+        "add_connection_xcall_dapp_cmd": 
+            "echo '{}' | archwayd tx wasm execute {} '{}' --from {} --keyring-backend test --chain-id {} --output json -y",
+        
+        "configure_xcall_connection_cmd": 
+            "echo '{}'| archwayd tx wasm execute {} '{}' --from {} --keyring-backend test --chain-id {} --output json -y",
+        
+        "set_default_connection_xcall_cmd": 
+            "echo '{}'| archwayd tx wasm execute {} '{}' --from {} --keyring-backend test --chain-id {} --output json -y",
+     
+    },
     "neutron" : {
         "node_constants" : NEUTRON_SERVICE_CONFIG,
         "cmd_keyword" : "neutrond",
-        "start_node_cmd": "chmod +x ../..{}init.sh && chmod +x ../..{}start_neutron.sh && chmod +x ../..{}init-neutrond.sh && key={} password=\"{}\" CHAINID={} ../..{}init.sh && CHAINID={} ../..{}init-neutrond.sh && CHAINID={} ../..{}start_neutron.sh",
-        }
+        "contract_path" : "../../root/contracts/{}.wasm",
+        "path":"--home ./data/{}",
+        
+        "start_node_cmd": 
+            "chmod +x ../..{}init.sh && chmod +x ../..{}start_neutron.sh && chmod +x ../..{}init-neutrond.sh && key={} password=\"{}\" CHAINID={} ../..{}init.sh && CHAINID={} ../..{}init-neutrond.sh && CHAINID={} ../..{}start_neutron.sh",
+        
+        "bindPort_cmd": 
+            '''echo '{}' | neutrond tx wasm execute "{}" '{{"bind_port":{{"address":"{}", "port_id":"xcall"}}}}' --from {} --home ./data/{} --keyring-backend test --chain-id {} --output json -y''',
+        
+        "registerClient_cmd": 
+            '''echo '{}' | neutrond tx wasm execute "{}" '{{"register_client":{{"client_type":"iconclient","client_address":"{}"}}}}' --from {} --home ./data/{} --keyring-backend test --chain-id {} --output json -y''',
+        
+        "add_connection_xcall_dapp_cmd": 
+            "echo '{}' | neutrond tx wasm execute {} '{}' --from {} --home ./data/{} --keyring-backend test --chain-id {} --output json -y",
+        
+        "configure_xcall_connection_cmd": 
+            "echo '{}'| neutrond tx wasm execute {} '{}' --from {} --home ./data/{} --keyring-backend test --chain-id {} --output json -y",
+        
+        "set_default_connection_xcall_cmd":    
+            "echo '{}'| neutrond tx wasm execute {} '{}' --from {} --home ./data/{} --keyring-backend test --chain-id {} --output json -y",
     }
+}
