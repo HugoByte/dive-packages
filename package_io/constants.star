@@ -140,6 +140,29 @@ NEUTRON_NODE2_CONFIG = struct(
     password = "clock post desk civil pottery foster expand merit dash seminar song memory figure uniform spice circle try happy obvious trash crime hybrid hood cushion",
 )
 
+ICON_NODE0_CONFIG = struct(
+    private_port = 9080,
+    public_port = 8090,
+    p2p_listen_address = 7080,
+    p2p_address = 8080,
+    cid = "0xacbc4e",
+    uploaded_genesis = {},
+    genesis_file_path = "../../static-files/config/genesis-icon-0.zip",
+    genesis_file_name = "genesis-icon-0.zip"
+)
+
+
+ICON_NODE1_CONFIG = struct(
+    private_port = 9081,
+    public_port = 8091,
+    p2p_listen_address = 7081,
+    p2p_address = 8081,
+    cid = "0x42f1f3",
+    uploaded_genesis = {},
+    genesis_file_path = "../../static-files/config/genesis-icon-1.zip",
+    genesis_file_name = "genesis-icon-1.zip"
+)
+
 node_details = {
     "archway" : {
         "node_constants" : ARCHWAY_SERVICE_CONFIG,

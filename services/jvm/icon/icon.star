@@ -2,24 +2,10 @@ wallet = import_module("./src/node-setup/wallet.star")
 setup_node = import_module("./src/node-setup/setup_icon_node.star")
 icon_node_launcher = import_module("./src/node-setup/start_icon_node.star")
 icon_relay_setup = import_module("./src/relay-setup/contract_configuration.star")
+constants = import_module("../../../package_io/constants.star")
 
-START_FILE_FOR_ICON0 = "start-icon.sh"
-START_FILE_FOR_ICON1 = "start-icon.sh"
-ICON0_NODE_PRIVATE_RPC_PORT = 9080
-ICON0_NODE_PUBLIC_RPC_PORT = 8090
-ICON0_NODE_P2P_LISTEN_ADDRESS = 7080
-ICON0_NODE_P2P_ADDRESS = 8080
-ICON1_NODE_PRIVATE_RPC_PORT = 9081
-ICON1_NODE_PUBLIC_RPC_PORT = 8091
-ICON1_NODE_P2P_LISTEN_ADDRESS = 7081
-ICON1_NODE_P2P_ADDRESS = 8081
-ICON0_NODE_CID = "0xacbc4e"
-ICON1_NODE_CID = "0x42f1f3"
-ICON0_GENESIS_FILE_PATH = "../../static-files/config/genesis-icon-0.zip"
-ICON1_GENESIS_FILE_PATH = "../../static-files/config/genesis-icon-1.zip"
-ICON0_GENESIS_FILE_NAME = "genesis-icon-0.zip"
-ICON1_GENESIS_FILE_NAME = "genesis-icon-1.zip"
-
+ICON_NODE0_CONFIG = constants.ICON_NODE0_CONFIG
+ICON_NODE1_CONFIG = constants.ICON_NODE1_CONFIG
 
 def start_node_service_icon_to_icon(plan):
     """
@@ -37,26 +23,26 @@ def start_node_service_icon_to_icon(plan):
     """
     source_chain_response = icon_node_launcher.start_icon_node(
         plan,
-        ICON0_NODE_PRIVATE_RPC_PORT,
-        ICON0_NODE_PUBLIC_RPC_PORT,
-        ICON0_NODE_P2P_LISTEN_ADDRESS,
-        ICON0_NODE_P2P_ADDRESS,
-        ICON0_NODE_CID,
-        {},
-        ICON0_GENESIS_FILE_PATH,
-        ICON0_GENESIS_FILE_NAME
+        ICON_NODE0_CONFIG.private_port,
+        ICON_NODE0_CONFIG.public_port,
+        ICON_NODE0_CONFIG.p2p_listen_address,
+        ICON_NODE0_CONFIG.p2p_address,
+        ICON_NODE0_CONFIG.cid,
+        ICON_NODE0_CONFIG.uploaded_genesis,
+        ICON_NODE0_CONFIG.genesis_file_path,
+        ICON_NODE0_CONFIG.genesis_file_name
     )
 
     destination_chain_response = icon_node_launcher.start_icon_node(
         plan,
-        ICON1_NODE_PRIVATE_RPC_PORT,
-        ICON1_NODE_PUBLIC_RPC_PORT,
-        ICON1_NODE_P2P_LISTEN_ADDRESS,
-        ICON1_NODE_P2P_ADDRESS,
-        ICON1_NODE_CID,
-        {},
-        ICON1_GENESIS_FILE_PATH,
-        ICON1_GENESIS_FILE_NAME
+        ICON_NODE1_CONFIG.private_port,
+        ICON_NODE1_CONFIG.public_port,
+        ICON_NODE1_CONFIG.p2p_listen_address,
+        ICON_NODE1_CONFIG.p2p_address,
+        ICON_NODE1_CONFIG.cid,
+        ICON_NODE1_CONFIG.uploaded_genesis,
+        ICON_NODE1_CONFIG.genesis_file_path,
+        ICON_NODE1_CONFIG.genesis_file_name
     )
 
     src_service_config = {
@@ -86,7 +72,17 @@ def start_node_service_icon_to_icon(plan):
         dst_config=dst_service_config,
     )
 
-def start_node_service(plan):
+def start_node_service( 
+    plan, 
+    private_port = None, 
+    public_port = None, 
+    p2p_listen_address = None, 
+    p2p_address = None, 
+    cid = None, 
+    uploaded_genesis = {}, 
+    genesis_file_path = None, 
+    genesis_file_name = None
+):
     """
     Spin up a single ICON node and return its configuration.
 
@@ -99,17 +95,26 @@ def start_node_service(plan):
     Note:
         This function starts a single ICON node and retrieves its configuration.
         It returns a dictionary with the configuration for the node.
-    """
+    """   
+    private_port = private_port if private_port != None else ICON_NODE0_CONFIG.private_port
+    public_port = public_port if public_port != None else ICON_NODE0_CONFIG.public_port
+    p2p_listen_address = p2p_listen_address if p2p_listen_address != None else ICON_NODE0_CONFIG.p2p_listen_address
+    p2p_address = p2p_address if p2p_address != None else ICON_NODE0_CONFIG.p2p_address
+    cid = cid if cid != None else ICON_NODE0_CONFIG.cid
+    genesis_file_path = genesis_file_path if genesis_file_path != None else ICON_NODE0_CONFIG.genesis_file_path
+    genesis_file_name = genesis_file_name if genesis_file_name != None else ICON_NODE0_CONFIG.genesis_file_name
+    uploaded_genesis = uploaded_genesis if uploaded_genesis != {} else ICON_NODE0_CONFIG.uploaded_genesis
+
     node_service_response = icon_node_launcher.start_icon_node(
         plan,
-        ICON0_NODE_PRIVATE_RPC_PORT,
-        ICON0_NODE_PUBLIC_RPC_PORT,
-        ICON0_NODE_P2P_LISTEN_ADDRESS,
-        ICON0_NODE_P2P_ADDRESS,
-        ICON0_NODE_CID,
-        {},
-        ICON0_GENESIS_FILE_PATH,
-        ICON0_GENESIS_FILE_NAME
+        private_port,
+        public_port,
+        p2p_listen_address,
+        p2p_address,
+        cid,
+        uploaded_genesis,
+        genesis_file_path,
+        genesis_file_name,
     )
 
     chain_service_config = {

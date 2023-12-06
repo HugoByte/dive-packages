@@ -1,5 +1,4 @@
 icon_setup_node = import_module("./services/jvm/icon/src/node-setup/setup_icon_node.star")
-icon_node_launcher = import_module("./services/jvm/icon/src/node-setup/start_icon_node.star")
 eth_node = import_module("./services/evm/eth/eth.star")
 icon_service = import_module("./services/jvm/icon/icon.star")
 cosmvm_node = import_module("./services/cosmvm/cosmvm.star")
@@ -7,7 +6,7 @@ btp_relay_setup = import_module("./services/bridges/btp/src/bridge.star")
 ibc_relay_setup = import_module("./services/bridges/ibc/src/bridge.star")
 
 
-def run(plan, command, node_name= None, custom_config = None, icon_service_config = None ,decentralize = False, bride_type = None ,chain_a = None, chain_b = None, service_config_a = None, service_config_b = None, bridge = False):
+def run(plan, command, node_name= None, custom_config = None, icon_service_config = None ,decentralize = False, bridge_type = None ,chain_a = None, chain_b = None, service_config_a = None, service_config_b = None, bridge = False):
     """
     Parse the input and execute the specified action.
 
@@ -22,7 +21,6 @@ def run(plan, command, node_name= None, custom_config = None, icon_service_confi
             - Currently supported options: 'eth', 'hardhat', 'icon', 'neutron', 'archway'.
 
         custom_config (dict, optional): Custom configuration for node or relay. If empty, the node will start with default settings.
-        bridge
         For ICON node with custom configuration, the following fields should be provided in custom_config_dict:
             - private_port (int): The private port for the node.
             - public_port (int): The public port for the node.
@@ -44,7 +42,7 @@ def run(plan, command, node_name= None, custom_config = None, icon_service_confi
         icon_service_config (dict, optional): ServiceConfig, this field should be provided when wanna decentralize already running icon node
 
         decentralize (bool, optional): Flag indicating whether to decentralize the ICON node.
-        bride_type (str, optional): The type of relay.
+        bridge_type (str, optional): The type of relay.
             - 'ibc': Start an IBC relay.
             - 'btp': Start a BTP bridge.
 
@@ -57,7 +55,7 @@ def run(plan, command, node_name= None, custom_config = None, icon_service_confi
     Returns:
         service_details (dict): Details about the service started.
     """
-    return parse_input(plan, command, node_name, custom_config, icon_service_config ,decentralize, bride_type ,chain_a, chain_b, service_config_a, service_config_b, bridge)
+    return parse_input(plan, command, node_name, custom_config, icon_service_config ,decentralize, bridge_type ,chain_a, chain_b, service_config_a, service_config_b, bridge)
 
 
 
@@ -120,7 +118,7 @@ def run_node(plan, node_name, decentralize, custom_config = None):
         if custom_config == None:
             service_config = icon_service.start_node_service(plan)
         else: 
-            service_config = icon_node_launcher.start_icon_node(plan, custom_config["private_port"], custom_config["private_port"], custom_config["p2p_listen_address"], custom_config["p2p_address"], custom_config["cid"], {}, custom_config["genesis_file_path"], custom_config["genesis_file_name"])
+            service_config = icon_service.start_node_service(plan, custom_config["private_port"], custom_config["public_port"], custom_config["p2p_listen_address"], custom_config["p2p_address"], custom_config["cid"], custom_config["uploaded_genesis"], custom_config["genesis_file_path"], custom_config["genesis_file_name"])
 
         if decentralize == True:
             icon_setup_node.configure_node(service_config["service_name"], service_config["enpoint"], service_config["keystore_path"], service_config["keypassword"], service_config["nid"])
