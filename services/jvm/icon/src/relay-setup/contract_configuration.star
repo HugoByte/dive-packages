@@ -183,7 +183,7 @@ def deploy_xcall_connection(plan, service_name, uri, keystore_path, keystore_pas
     plan.print("deploy xcall connection")
     plan.print(xcall_address)
     
-    init_message= '{"_xCall": "%s","_ibc": "%s","port": "xcall"}' % (xcall_address,ibc_address)
+    init_message= '{"_xCall": "%s","_ibc": "%s","_port": "xcall"}' % (xcall_address,ibc_address)
 
    
     tx_hash = contract_deployment_service.deploy_contract(plan, "xcall-connection-0.1.0-optimized", init_message, service_name, uri, keystore_path, keystore_password, nid)
@@ -251,7 +251,7 @@ def set_default_connection_xcall(plan,xcall_address,wasm_network_id,xcall_connec
 
     plan.print("Setting Up  Xcall Default connection")
     method = "setDefaultConnection"
-    params = '{"nid":"%s","connection":"%s"}' % (wasm_network_id,xcall_connection_address)
+    params = '{"_nid":"%s","_connection":"%s"}' % (wasm_network_id,xcall_connection_address)
 
     exec_command = ["./bin/goloop","rpc","sendtx","call","--to",xcall_address,"--method",method,"--params",params,"--uri",uri,"--key_store",keystorepath,"--key_password",keypassword,"--step_limit","500000000000","--nid",nid]
     result = plan.exec(service_name=service_name,recipe=ExecRecipe(command=exec_command))
