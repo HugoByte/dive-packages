@@ -1,7 +1,6 @@
 constants = import_module("../../../../../package_io/constants.star")
-participant_network = import_module("github.com/kurtosis-tech/ethereum-package/src/participant_network.star")
-input_parser = import_module("github.com/kurtosis-tech/ethereum-package/src/package_io/input_parser.star")
-
+participant_network = import_module("github.com/kurtosis-tech/eth-network-package/src/participant_network.star")
+input_parser = import_module("github.com/kurtosis-tech/eth-network-package/package_io/input_parser.star")
 network_keys_and_public_address = constants.NETWORK_PORT_KEYS_AND_IP_ADDRESS
 
 # Spins Up the ETH Node
@@ -16,11 +15,11 @@ def start_eth_node(plan):
         A dictionary containing configuration data for the started Ethereum node.
     """
     eth_constants = constants.ETH_NODE_CLIENT
-    args_with_right_defaults = input_parser.input_parser(plan, {})
+    args_with_right_defaults = input_parser.get_args_with_default_values({})
     num_participants = len(args_with_right_defaults.participants)
     network_params = args_with_right_defaults.network_params
 
-    all_participants, cl_genesis_timestamp, _ , _ = participant_network.launch_participant_network(
+    all_participants, cl_genesis_timestamp, _ = participant_network.launch_participant_network(
         plan, args_with_right_defaults.participants, network_params, args_with_right_defaults.global_client_log_level
     )
 
