@@ -23,22 +23,20 @@ def deploy(plan, chain_name, chain_id, chain_key, contract_name, message, servic
     path = node_details[chain_name]["path"].format(chain_id)
 
     # Execute a command to store the contract on the chain and retrieve the code ID
+    retrieveID_cmd =  "{0} tx wasm store  {1} --from  {2} {3} --keyring-backend test --chain-id {4} --gas auto --gas-adjustment 1.3 -y --output json -b block | jq -r '.logs[0].events[-1].attributes[1].value' > code_id.json "
     plan.exec(
         service_name = service_name, 
         recipe = ExecRecipe(
-            command = ["/bin/sh", "-c", 
-            "%s tx wasm store  %s --from  %s %s --keyring-backend test --chain-id %s --gas auto --gas-adjustment 1.3 -y --output json -b block | jq -r '.logs[0].events[-1].attributes[1].value' > code_id.json " % (node_details[chain_name]["cmd_keyword"], contract, chain_key, path, chain_id)
-            ]
+            command = ["/bin/sh", "-c", retrieveID_cmd.format(node_details[chain_name]["cmd_keyword"], contract, chain_key, path, chain_id)]
         )
     )
     code_id = plan.exec(service_name = service_name, recipe = ExecRecipe(command = ["/bin/sh", "-c", "cat code_id.json | tr -d '\n\r' "]))
 
     # Instantiate the contract
+    instantiate_cmd = "{0} tx wasm instantiate {1} '{2}' --from {3} {4} --keyring-backend test --label {5} --chain-id {6} --no-admin --gas auto --gas-adjustment 1.3 -y -b block | tr -d '\n\r' "
     plan.print("Instantiating the contract")
     exec = ExecRecipe(
-        command = ["/bin/sh", "-c", 
-        "%s tx wasm instantiate %s '%s' --from %s %s --keyring-backend test --label %s --chain-id %s --no-admin --gas auto --gas-adjustment 1.3 -y -b block | tr -d '\n\r' " % (node_details[chain_name]["cmd_keyword"], code_id["output"], message, chain_key, path, contract_name, chain_id)
-        ]
+        command = ["/bin/sh", "-c", instantiate_cmd.format(node_details[chain_name]["cmd_keyword"], code_id["output"], message, chain_key, path, contract_name, chain_id)]
     )
     plan.exec(service_name = service_name, recipe = exec)
 

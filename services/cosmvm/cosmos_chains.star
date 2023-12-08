@@ -13,19 +13,14 @@ neutron_node2_config = constants.NEUTRON_NODE2_CONFIG
 neutron_service_config = constants.NEUTRON_SERVICE_CONFIG
 neutron_private_ports = constants.NEUTRON_PRIVATE_PORTS
 
+node_details = constants.node_details
+
 def start_node_service(plan, chain_name, chain_id = None, key = None, password = None, public_grpc = None, public_http = None, public_tcp = None, public_rpc = None):
     
-    if chain_name == "archway":
-        service_config = archway_node0_config
-        cosmos_service_config = archway_service_config
-        password = password if password != None else cosmos_service_config.password
-        private_ports = archway_private_ports
-
-    else:
-        service_config = neutron_node1_config
-        cosmos_service_config = neutron_service_config
-        password = password if password != None else service_config.password
-        private_ports = neutron_private_ports
+    service_config = node_details[chain_name]["service_config"]
+    cosmos_service_config = node_details[chain_name]["cosmos_service_config"]
+    password = node_details[chain_name]["password"]
+    private_ports = node_details[chain_name]["private_ports"]
 
     chain_id = chain_id if chain_id != None else service_config.chain_id
     key = key if key != None else service_config.key
