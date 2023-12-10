@@ -1,16 +1,17 @@
-# Import constants from an external modules
+# Import the required modules and constants
 constants = import_module("../../../../package_io/constants.star")
 network_port_keys_and_ip = constants.NETWORK_PORT_KEYS_AND_IP_ADDRESS
 
 def start_cosmos_node(plan, chain_name, chain_id, key, password, service_name, private_grpc, private_http, private_tcp, private_rpc, public_grpc, public_http, public_tcp, public_rpc):
     """
-    Configure and start a Cosmos node for Archway.
+    Configure and start a Cosmos node.
 
     Args:
-        plan (plan): Plan object for service deployment.
-        chain_id (str): Chain ID.
-        key (str): Key.
-        password (str): Password.
+        plan (Plan): The Kurtosis plan.
+        chain_name (str): Cosmos supported Chain Name.
+        chain_id (str): Chain Id of the chain to be started.
+        key (str): Key used for creating account.
+        password (str): Password for Key.
         service_name (str): Name of the service.
         private_grpc (int): Private gRPC port.
         private_http (int): Private HTTP port.
@@ -20,7 +21,6 @@ def start_cosmos_node(plan, chain_name, chain_id, key, password, service_name, p
         public_http (int): Public HTTP port.
         public_tcp (int): Public TCP port.
         public_rpc (int): Public RPC port.
-        chain_name (str): The name of the blockchain network.
 
     Returns:
         struct: Configuration information for the service.
@@ -67,7 +67,7 @@ def start_cosmos_node(plan, chain_name, chain_id, key, password, service_name, p
     public_url = get_service_url(network_port_keys_and_ip.public_ip_address, chain_node_config.public_ports)
     private_url = get_service_url(node_service_response.ip_address, node_service_response.ports)
 
-    #return service name  and endpoints
+    #return service name and endpoints
     return struct(
         service_name = service_name,
         endpoint = private_url,
@@ -92,7 +92,21 @@ def get_service_url(ip_address, ports):
     url = "{0}://{1}:{2}".format(protocol, ip_address, port_id)
     return url
 
-def format_command(chain_name, path, command, chain_id, key, password,):
+def format_command(chain_name, path, command, chain_id, key, password):
+    """
+    Format the command to be executed.
+
+    Args:
+        chain_name (str): Cosmos supported Chain Name.
+        path (str): The file path. 
+        command (str): The command to be formatted.
+        chain_id (str): Chain Id of the chain to be started.
+        key (str): Key used for creating account.
+        password (str): Password for Key.
+
+    Returns:
+        str: The formatted command ready to be executed.
+    """
     if chain_name == "archway":
         new_cmd = command.format(path, chain_id, key, password)
     elif chain_name == "neutron":

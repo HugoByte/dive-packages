@@ -1,12 +1,13 @@
+# Import the required modules and constants
 constants = import_module("../../../../package_io/constants.star")
 node_details = constants.node_details
 
 def deploy(plan, chain_name, chain_id, chain_key, contract_name, message, service_name):
     """
-    Deploy a contract on a Neutron node.
+    Deploy a contract on a cosmos supported node.
 
     Args:
-        plan (plan): The execution plan.
+        plan (Plan): The Kurtosis plan.
         chain_id (str): The chain ID.
         chain_key (str): The chain key.
         contract_name (str): The name of the contract to deploy.

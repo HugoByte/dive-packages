@@ -1,4 +1,4 @@
-# Import required modules and constants
+# Import the required modules and constants
 constants = import_module("../../../../package_io/constants.star")
 ibc_relay_config = constants.IBC_RELAYER_SERVICE
 icon_setup_node = import_module("../../../jvm/icon/src/node-setup/setup_icon_node.star")
@@ -8,14 +8,23 @@ input_parser = import_module("../../../../package_io/input_parser.star")
 cosmvm_node = import_module("../../../cosmvm/cosmvm.star")
 cosmos_relay_setup = import_module("../../../cosmvm/src/relay-setup/contract-configuration.star")
 
-
 def run_cosmos_ibc_setup(plan, src_chain, dst_chain):
+    """
+    Start IBC bridge between two chains.
 
+    Args:
+        plan (Plan): The Kurtosis plan.
+        src_chain (str): The name of the source chain.
+        dst_chain (str): The name of the destination chain.
+    
+    Returns:
+        dict: The configuration data for the IBC bridge.
+    """
     # Check if source and destination chains are both CosmVM-based chains (archway or neutron)
     if (src_chain in ["archway", "neutron"]) and (dst_chain in ["archway", "neutron"]):
         # Start IBC between two CosmVM chains
         data = cosmvm_node.start_ibc_between_cosmvm_chains(plan, src_chain, dst_chain)
-        config_data = run_cosmos_ibc_relay_for_already_running_chains(plan, src_chain, dst_chain ,data.src_config, data.dst_config)
+        config_data = run_cosmos_ibc_relay_for_already_running_chains(plan, src_chain, dst_chain, data.src_config, data.dst_config)
         return config_data
 
     if dst_chain in ["archway", "neutron"] and src_chain == "icon":
@@ -25,11 +34,23 @@ def run_cosmos_ibc_setup(plan, src_chain, dst_chain):
         dst_chain_config = cosmvm_node.start_cosmvm_chains(plan, dst_chain)
         dst_chain_config = input_parser.struct_to_dict(dst_chain_config)
         # Get service names and new generate configuration data
-        config_data = run_cosmos_ibc_relay_for_already_running_chains(plan,src_chain, dst_chain ,src_chain_config , dst_chain_config)
+        config_data = run_cosmos_ibc_relay_for_already_running_chains(plan, src_chain, dst_chain ,src_chain_config, dst_chain_config)
         return config_data
 
 def run_cosmos_ibc_relay_for_already_running_chains(plan, src_chain, dst_chain, src_chain_config, dst_chain_config):
+    """
+    Start IBC bridge between two already running chains.
 
+    Args:
+        plan (Plan): The Kurtosis plan.
+        src_chain (str): The name of the source chain.
+        dst_chain (str): The name of the destination chain.
+        src_chain_config (dict): The configuration data for the source chain.
+        dst_chain_config (dict): The configuration data for the destination chain.
+
+    Returns:
+        dict: The configuration data for the IBC bridge.
+    """
     config_data = generate_ibc_config(src_chain, dst_chain, src_chain_config, dst_chain_config)
     if src_chain in ["archway", "neutron"] and dst_chain in ["archway", "neutron"]:
         start_cosmos_relay(plan, src_chain, dst_chain, src_chain_config, dst_chain_config)
@@ -60,7 +81,16 @@ def run_cosmos_ibc_relay_for_already_running_chains(plan, src_chain, dst_chain, 
     return config_data
 
 def setup_icon_chain(plan, chain_config):
+    """
+    Set up icon chain.
 
+    Args:
+        plan (Plan): The Kurtosis plan.
+        chain_config (dict): The configuration data for the ICON chain.
+
+    Returns:
+        dict: The deployed icon contract details and the source chain data.
+    """
     deploy_icon_contracts = icon_relay_setup.setup_contracts_for_ibc_java(plan, chain_config["service_name"], chain_config["endpoint"], chain_config["keystore_path"], chain_config["keypassword"], chain_config["nid"], chain_config["network"])
     icon_relay_setup.registerClient(plan, chain_config["service_name"], deploy_icon_contracts["light_client"], chain_config["keystore_path"], chain_config["keypassword"], chain_config["nid"], chain_config["endpoint"], deploy_icon_contracts["ibc_core"])
 
@@ -77,7 +107,7 @@ def setup_icon_chain(plan, chain_config):
         "owner": deploy_icon_contracts["ibc_core"],
     }
 
-     #Open BTP network on ICON chain
+    # Open BTP network on ICON chain
     tx_result_open_btp_network = icon_setup_node.open_btp_network(plan, chain_config["service_name"], src_data, chain_config["endpoint"], chain_config["keystore_path"], chain_config["keypassword"], chain_config["nid"])
 
     icon_relay_setup.bindPort(plan, chain_config["service_name"], deploy_icon_contracts["xcall_connection"], chain_config["keystore_path"], chain_config["keypassword"], chain_config["nid"], chain_config["endpoint"], deploy_icon_contracts["ibc_core"], "xcall")
@@ -100,6 +130,17 @@ def setup_icon_chain(plan, chain_config):
     return deploy_icon_contracts, src_chain_data
 
 def setup_cosmos_chain(plan, chain_name, chain_config):
+    """
+    Set up cosmos chains.
+
+    Args:
+        plan (Plan): The Kurtosis plan.
+        chain_name (str): The name of the cosmos supported chain.
+        chain_config (dict): The configuration data for the cosmos supported chain.
+
+    Returns:
+        dict: The deployed cosmos contract details and the destination chain data.
+    """
     deploy_cosmos_contracts = cosmos_relay_setup.setup_contracts_for_ibc_wasm(plan, chain_name, chain_config["service_name"], chain_config["chain_id"], chain_config["chain_key"], chain_config["chain_id"], "stake", "xcall")
     cosmos_relay_setup.registerClient(plan, chain_name, chain_config["service_name"], chain_config["chain_id"], chain_config["chain_key"], deploy_cosmos_contracts["ibc_core"], deploy_cosmos_contracts["light_client"])
     plan.wait(service_name = chain_config["service_name"], recipe = ExecRecipe(command = ["/bin/sh", "-c", "sleep 10s && echo 'success'"]), field = "code", assertion = "==", target_value = 0, timeout = "200s")
@@ -116,12 +157,37 @@ def setup_cosmos_chain(plan, chain_name, chain_config):
     return deploy_cosmos_contracts, dst_chain_data
 
 def generate_ibc_config(src_chain, dst_chain, src_chain_config, dst_chain_config):
+    """
+    Generate IBC configuration details.
+
+    Args:
+        src_chain (str): The name of the source chain.
+        dst_chain (str): The name of the destination chain.
+        src_chain_config (dict): The configuration data for the source chain.
+        dst_chain_config (dict): The configuration data for the destination chain.
+
+    Returns:
+        dict: The configuration data for the source and destination chains.
+    """
     config_data = input_parser.generate_new_config_data_for_ibc(src_chain, dst_chain, src_chain_config["service_name"], dst_chain_config["service_name"])
     config_data["chains"][src_chain_config["service_name"]] = src_chain_config
     config_data["chains"][dst_chain_config["service_name"]] = dst_chain_config
     return config_data
 
 def start_cosmos_relay(plan, src_chain, dst_chain, src_config, dst_config):
+    """
+    Start a cosmos relay.
+
+    Args:
+        plan (Plan): The Kurtosis plan.
+        src_chain (str): The name of the source chain.
+        dst_chain (str): The name of the destination chain.
+        src_config (dict): The configuration data for the source chain.
+        dst_config (dict): The configuration data for the destination chain.
+
+    Returns:
+        struct: The relay service name.
+    """
     plan.print("Starting Cosmos relay")
 
     plan.upload_files(src = ibc_relay_config.run_file_path, name = "run")
@@ -180,6 +246,19 @@ def start_cosmos_relay(plan, src_chain, dst_chain, src_config, dst_config):
     )
 
 def start_cosmos_relay_for_icon_to_cosmos(plan, src_chain, dst_chain, src_chain_config, dst_chain_config):
+    """
+    Start IBC relay for ICON to cosmos.
+
+    Args:
+        plan (Plan): The Kurtosis plan.
+        src_chain (str): The name of the source chain.
+        dst_chain (str): The name of the destination chain.
+        src_chain_config (dict): The configuration data for the source chain.
+        dst_chain_config (dict): The configuration data for the destination chain.
+
+    Returns:
+        struct: The relay service name.
+    """
     plan.print("starting the cosmos relay for icon to cosmos")
 
     file_name = "%s_config" % dst_chain
@@ -246,6 +325,13 @@ def start_cosmos_relay_for_icon_to_cosmos(plan, src_chain, dst_chain, src_chain_
 
 
 def setup_relay_exec(plan, cmd):
+    """
+    Execute services for setup relay.
+
+    Args:
+        plan (Plan): The Kurtosis plan.
+        cmd (str): The command to be executed.
+    """
     plan.exec(
         service_name = ibc_relay_config.relay_service_name_icon_to_cosmos, 
         recipe = ExecRecipe(
@@ -254,6 +340,17 @@ def setup_relay_exec(plan, cmd):
     )
 
 def setup_relay(plan, src_chain_config, dst_chain_config):
+    """
+    Set up relay between two chains.
+
+    Args:
+        plan (Plan): The Kurtosis plan.
+        src_chain_config (dict): The configuration data for the source chain.
+        dst_chain_config (dict): The configuration data for the destination chain.
+
+    Returns:
+        str: The path name.
+    """
     src_chain_id = src_chain_config["chain_id"]
     src_password = src_chain_config["password"]
 
@@ -285,16 +382,39 @@ def setup_relay(plan, src_chain_config, dst_chain_config):
     return path_name
 
 def get_path_data(plan, service_name, path_name, key):
-    response = plan.exec(service_name=service_name, recipe=ExecRecipe(command=[
-        "/bin/sh", "-c", "cat /root/.relayer/config/config.yaml | yq '.paths.{0}.{1}'".format(path_name,key)
+    """
+    Get the path data for the service.
+
+    Args:
+        plan (Plan): The Kurtosis plan.
+        service_name (str): The name of the service.
+        path_name (str): The path name of the service.
+        key (str): The chain Key.
+
+    Returns:
+        str: The path data.
+    """
+    response = plan.exec(service_name = service_name, recipe = ExecRecipe(command = [
+        "/bin/sh", "-c", "cat /root/.relayer/config/config.yaml | yq '.paths.{0}.{1}'".format(path_name, key)
     ]))
-    execute_cmd = ExecRecipe(command=[
+    execute_cmd = ExecRecipe(command = [
         "/bin/sh", "-c", "echo \"{0}\" | tr -d '\n\r'".format(response["output"])
     ])
-    result = plan.exec(service_name=service_name, recipe=execute_cmd)
+    result = plan.exec(service_name = service_name, recipe = execute_cmd)
     return result["output"]
 
 def get_relay_path_data(plan, service_name, path_name):
+    """
+    Get relay path data
+
+    Args:
+        plan (Plan): The Kurtosis plan.
+        service_name (str): The name of the service.
+        path_name (str): The path name of the service.
+
+    Returns:
+        struct: A dictionary of configuration details.
+    """
     src_chain_id = get_path_data(plan, service_name, path_name, "src.chain-id")
     src_client_id = get_path_data(plan, service_name, path_name, "src.client-id")
     src_connection_id = get_path_data(plan, service_name, path_name, "src.connection-id")
@@ -303,21 +423,38 @@ def get_relay_path_data(plan, service_name, path_name):
     dst_connection_id = get_path_data(plan, service_name, path_name, "dst.connection-id")
 
     config = struct(
-        src_chain_id=src_chain_id,
-        src_client_id=src_client_id,
-        src_connection_id=src_connection_id,
-        dst_chain_id=dst_chain_id,
-        dst_client_id=dst_client_id,
-        dst_connection_id=dst_connection_id,
+        src_chain_id = src_chain_id,
+        src_client_id = src_client_id,
+        src_connection_id = src_connection_id,
+        dst_chain_id = dst_chain_id,
+        dst_client_id = dst_client_id,
+        dst_connection_id = dst_connection_id,
     )
 
     return config
 
 def start_channel(plan, service_name, path_name, src_port, dst_port):
+    """
+    Start a channel
+
+    Args:
+        plan (Plan): The Kurtosis plan.
+        service_name (str): The name of the service.
+        path_name (str): The path name of the service.
+        src_port (int): The source chain port.
+        dst_port (int): The destination chain port.
+    """
     plan.print("Starting Channel")
     exec_cmd = ["/bin/sh", "-c", "rly tx chan %s --src-port=%s --dst-port=%s" % (path_name, src_port, dst_port)]
     plan.exec(service_name = service_name, recipe = ExecRecipe(command = exec_cmd))
 
 def start_relay(plan, service_name):
+    """
+    Start a relay.
+
+    Args:
+        plan (Plan): The Kurtosis plan.
+        service_name (str): The name of the service.
+    """
     plan.print("Starting Relay")
     plan.exec(service_name = service_name, recipe = ExecRecipe(command = ["/bin/sh", "-c", "ln -sf /proc/1/fd/1 /root/.relayer/relay.log && rly start 1>&2 &"]))

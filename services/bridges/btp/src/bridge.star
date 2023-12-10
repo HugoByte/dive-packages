@@ -1,7 +1,9 @@
+# Import the required modules and constants
 RELAY_SERVICE_IMAGE = 'hugobyte/btp-relay'
 RELAY_SERVICE_NAME = "btp-bridge"
 RELAY_KEYSTORE_FILES_PATH = "/relay/keystores/"
 RELAY_KEYSTORE_PATH = "../static-files/keystores/"
+
 icon_relay_setup = import_module("../../../jvm/icon/src/relay-setup/contract_configuration.star")
 icon_service = import_module("../../../jvm/icon/icon.star")
 icon_setup_node = import_module("../../../jvm/icon/src/node-setup/setup_icon_node.star")
@@ -10,10 +12,19 @@ eth_relay_setup = import_module("../../../evm/eth/src/relay-setup/contract_confi
 eth_node = import_module("../../../evm/eth/eth.star")
 input_parser = import_module("../../../../package_io/input_parser.star")
 
-
-
-
 def run_btp_setup(plan, src_chain, dst_chain, bridge):
+    """
+    Start a BTP relay.
+
+    Args:
+        plan (Plan): The Kurtosis plan.
+        src_chain (str): The source ICON chain name.
+        dst_chain (str): The destination ICON chain name.
+        bridge (bool): BMV bridge if true or false.
+
+    Returns:
+        dict: New configuration data for BTP.
+    """
     if src_chain == "icon" and dst_chain == "icon":
         data = icon_service.start_node_service_icon_to_icon(plan)
         src_chain_service_name = data.src_config["service_name"]
@@ -42,16 +53,12 @@ def run_btp_setup(plan, src_chain, dst_chain, bridge):
         else:
             fail("unsupported chain {0} - {1}".format(src_chain, dst_chain))
 
-
-
-
-
 def start_btp_for_already_running_icon_nodes(plan, src_chain, dst_chain, src_chain_config, dst_chain_config, bridge):
     """
     Starts BTP for already running ICON nodes.
 
     Args:
-        plan (str):  plan.
+        plan (Plan): The Kurtosis plan.
         src_chain (str): The source ICON chain name.
         dst_chain (str): The destination ICON chain name.
         src_chain_config (dict): Configuration for the source ICON chain.
@@ -137,20 +144,17 @@ def start_btp_for_already_running_icon_nodes(plan, src_chain, dst_chain, src_cha
 
     return config_data
 
-
-
-# Function to start the BTP from ICON to Ethereum for already running nodes.
 def start_btp_icon_to_eth_for_already_running_nodes(plan, src_chain, dst_chain, src_chain_config, dst_chain_config, bridge):
     """
     Starts BTP from ICON to Ethereum for already running nodes.
 
     Args:
-        plan (str): plan.
+        plan (Plan): The Kurtosis plan.
         src_chain (str): The source ICON chain name.
         dst_chain (str): The destination Ethereum chain name.
         src_chain_config (dict): Configuration for the source ICON chain.
         dst_chain_config (dict): Configuration for the destination Ethereum chain.
-        bridge (str): The bridge configuration.
+        bridge (bool): BMV bridge if true or false.
 
     Returns:
         dict: New configuration data for BTP.
@@ -236,31 +240,33 @@ def start_btp_icon_to_eth_for_already_running_nodes(plan, src_chain, dst_chain, 
 
     return config_data
 
+def start_btp_relayer(plan, src_bmc, dst_bmc, src_chain_config, dst_chain_config, bridge):
+    """
+    Start a BTP relayer.
 
-
-def start_btp_relayer(plan, src_bmc, dst_bmc, src_chain_config, dst_chain_config ,bridge):
-  
+    Args:
+        plan (Plan): The Kurtosis plan.
+        src_bmc (str): The source BMC address.
+        dst_bmc (str):The destination BMC address.
+        src_chain_config (dict): Configuration for the source ICON chain.
+        dst_chain_config (dict): Configuration for the destination Ethereum chain.
+        bridge (bool): BMV bridge if true or false.
+    """
     src_btp_address = "btp://{0}/{1}".format(src_chain_config["network"], src_bmc)
     dst_btp_address = "btp://{0}/{1}".format(dst_chain_config["network"], dst_bmc)
     start_relayer(plan, src_btp_address, dst_btp_address, src_chain_config, dst_chain_config ,bridge)
-
-
 
 def start_relayer(plan, src_btp_address, dst_btp_address, src_chain_config, dst_chain_config, bridge):
     """
     Start a BTP Relay Service.
 
     Args:
-        plan (Plan): The kurtosi plan for starting the relay service.
+        plan (Plan): The Kurtosis plan.
         src_btp_address (str): The source BTP address.
         dst_btp_address (str): The destination BTP address.
         src_chain_config (dict): Configuration for the source chain.
         dst_chain_config (dict): Configuration for the destination chain.
-        bridge (str): The bridge mode.
-
-    Note:
-        This function starts a BTP Relay Service to relay messages between two blockchain networks.
-        It uploads keystore files, configures the service, and starts the relay with the provided parameters.
+        bridge (bool): BMV bridge if true or false.
     """
     plan.print("Starting BTP Relay Service")
 

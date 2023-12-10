@@ -1,22 +1,39 @@
-# Import required modules and constants
+# Import the required modules and constants
 cosmos_node_service = import_module("./src/node-setup/start_node.star")
 parser = import_module("../../package_io/input_parser.star")
 constants = import_module("../../package_io/constants.star")
+node_details = constants.node_details
 
+# Archway node configurations
 archway_node0_config = constants.ARCHAY_NODE0_CONFIG
 archway_node1_config = constants.ARCHAY_NODE1_CONFIG
 archway_service_config = constants.ARCHWAY_SERVICE_CONFIG
 archway_private_ports = constants.COMMON_ARCHWAY_PRIVATE_PORTS
 
+# Neutron node configurations
 neutron_node1_config = constants.NEUTRON_NODE1_CONFIG
 neutron_node2_config = constants.NEUTRON_NODE2_CONFIG
 neutron_service_config = constants.NEUTRON_SERVICE_CONFIG
 neutron_private_ports = constants.NEUTRON_PRIVATE_PORTS
 
-node_details = constants.node_details
-
 def start_node_service(plan, chain_name, chain_id = None, key = None, password = None, public_grpc = None, public_http = None, public_tcp = None, public_rpc = None):
-    
+    """
+    Spin up a single cosmos node and return its configuration.
+
+    Args:
+        plan (Plan): The Kurtosis plan.
+        chain_name (str): Cosmos supported Chain Name.
+        chain_id (str, optional): Chain Id of the chain to be started. Defaults to None.
+        key (str, optional):  Key used for creating account. Defaults to None.
+        password (str, optional): Password for Key. Defaults to None.
+        public_grpc (int, optional): GRPC Endpoint for chain to run. Defaults to None.
+        public_http (int, optional): HTTP Endpoint for chain to run. Defaults to None.
+        public_tcp (int, optional): TCP Endpoint for chain to run. Defaults to None.
+        public_rpc (int, optional): RPC Endpoint for chain to run. Defaults to None.
+
+    Returns:
+        struct: The response from starting the cosmos node service.
+    """
     service_config = node_details[chain_name]["service_config"]
     cosmos_service_config = node_details[chain_name]["cosmos_service_config"]
     password = node_details[chain_name]["password"]
@@ -52,7 +69,7 @@ def start_node_services_neutron(plan):
     Configure and start two Neutron node services, serving as the source and destination to establish an IBC relay connection between them.
 
     Args:
-        plan (plan): plan.
+        plan (Plan): The Kurtosis plan.
 
     Returns:
         struct: Configuration information for the source and destination services.
@@ -88,13 +105,13 @@ def start_node_services_neutron(plan):
 
 def start_node_services_archway(plan):
     """
-    Configure and start two Cosmos nodes for Archway.
+    Configure and start two Neutron node services, serving as the source and destination to establish an IBC relay connection between them.
 
     Args:
-        plan (plan): plan.
+        plan (Plan): The Kurtosis plan.
 
     Returns:
-        struct: Configuration information for source and destination services.
+        struct: Configuration information for the source and destination services.
     """
     chain_name = "archway"
     service_name_src = "{0}-{1}".format(archway_service_config.service_name, archway_node0_config.chain_id)
