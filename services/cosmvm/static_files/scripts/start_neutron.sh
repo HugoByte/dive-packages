@@ -13,6 +13,8 @@ CHAIN_DIR="$BASE_DIR/$CHAINID"
 
 RUN_BACKGROUND=${RUN_BACKGROUND:-1}
 
+apt install jq
+
 echo "Starting $CHAINID in $CHAIN_DIR..."
 echo "Creating log file at $CHAIN_DIR/$CHAINID.log"
 if [ "$RUN_BACKGROUND" == 1 ]; then

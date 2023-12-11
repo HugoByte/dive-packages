@@ -1,3 +1,4 @@
+# Import the required modules 
 eth_node = import_module("./src/node-setup/start-eth-node.star")
 eth_relay_setup = import_module("./src/relay-setup/contract_configuration.star")
 
@@ -6,11 +7,11 @@ def start_eth_node_service(plan, node_type):
     Function to start an Ethereum node service.
 
     Args:
-        - plan: A plan object representing the node setup plan.
-        - node_type: The type of Ethereum node to start (eth/hardhat).
+        plan (Plan): The Kurtosis plan.
+        node_type (str): The name of EVM supported chain.
 
     Returns:
-        A dictionary containing configuration data for the started Ethereum node service.
+        dict: A dictionary containing configuration data for the started Ethereum node service.
     """
     node_service_data = eth_node.start_node_service(plan, node_type)
 
@@ -30,9 +31,17 @@ def start_eth_node_service(plan, node_type):
 def deploy_bmv_eth(plan, bridge, data, network, network_name, chain_name):
     """
     Function to deploy a BMV Ethereum contract.
+    
+    Args:
+        plan (Plan): The Kurtosis plan.
+        bridge (bool): BMV bridge if true or false.
+        data (struct): A dictionary containing chain data.
+        network (str): The chain network.
+        network_name (str): The chain network name.
+        chain_name (str): The name of EVM supported chain.
 
     Returns:
-        The address of the deployed contract.
+        str: The address of the deployed contract.
     """
     if bridge == "true":
         address = eth_relay_setup.deploy_bmv_bridge(plan, data.block_height, data.bmc, data.network, chain_name, network, network_name)

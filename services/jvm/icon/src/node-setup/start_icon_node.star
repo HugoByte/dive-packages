@@ -1,3 +1,4 @@
+# Import the required modules and constants
 constants = import_module("../../../../../package_io/constants.star")
 network_keys_and_public_address = constants.NETWORK_PORT_KEYS_AND_IP_ADDRESS
 
@@ -17,7 +18,7 @@ def start_icon_node(plan, private_port, public_port, p2p_listen_address, p2p_add
         genesis_file_name: The name of the genesis file.
 
     Returns:
-        Configuration data for the started ICON node service as a dictionary.
+        struct: Configuration data for the started ICON node service.
     """
     plan.print(uploaded_genesis)
 
@@ -29,9 +30,9 @@ def start_icon_node(plan, private_port, public_port, p2p_listen_address, p2p_add
     plan.print("Launching " + service_name + " Service")
 
     plan.print("Uploading Files for %s Service" % service_name)
-    plan.upload_files(src=icon_node_constants.config_files_path, name="config-files-{0}".format(cid))
-    plan.upload_files(src=icon_node_constants.contract_files_path, name="contracts-{0}".format(cid))
-    plan.upload_files(src=icon_node_constants.keystore_files_path, name="keystore-{0}".format(cid))
+    plan.upload_files(src = icon_node_constants.config_files_path, name = "config-files-{0}".format(cid))
+    plan.upload_files(src = icon_node_constants.contract_files_path, name = "contracts-{0}".format(cid))
+    plan.upload_files(src = icon_node_constants.keystore_files_path, name = "keystore-{0}".format(cid))
 
     file_path = ""
     file_name = ""
@@ -44,74 +45,83 @@ def start_icon_node(plan, private_port, public_port, p2p_listen_address, p2p_add
         file_name = uploaded_genesis["file_name"]
 
     icon_node_service_config = ServiceConfig(
-        image=icon_node_constants.node_image,
-        ports={
+        image = icon_node_constants.node_image,
+        ports = {
             network_keys_and_public_address.rpc: PortSpec(
-                number=private_port, transport_protocol=network_keys_and_public_address.tcp.upper(),
-                application_protocol=network_keys_and_public_address.http
+                number = private_port, 
+                transport_protocol = network_keys_and_public_address.tcp.upper(),
+                application_protocol = network_keys_and_public_address.http
             ),
         },
-        public_ports={
+        public_ports = {
             network_keys_and_public_address.rpc: PortSpec(
-                number=public_port, transport_protocol=network_keys_and_public_address.tcp.upper(),
-                application_protocol=network_keys_and_public_address.http
+                number = public_port, 
+                transport_protocol = network_keys_and_public_address.tcp.upper(),
+                application_protocol = network_keys_and_public_address.http
             ),
         },
-        files={
+        files = {
             icon_node_constants.config_files_directory: "config-files-{0}".format(cid),
             icon_node_constants.contracts_directory: "contracts-{0}".format(cid),
             icon_node_constants.keystore_directory: "keystore-{0}".format(cid),
             icon_node_constants.genesis_file_path: file_path,
         },
-        env_vars={
+        env_vars = {
             "GOLOOP_LOG_LEVEL": "trace",
             "GOLOOP_RPC_ADDR": ":%s" % private_port,
             "GOLOOP_P2P_LISTEN": ":%s" % p2p_listen_address,
             "GOLOOP_P2P": ":%s" % p2p_address,
             "ICON_CONFIG": icon_node_constants.config_files_directory + "icon_config.json",
         },
-        cmd=["/bin/sh", "-c", icon_node_constants.config_files_directory + "start.sh %s %s" % (cid, file_name)],
+        cmd = ["/bin/sh", "-c", icon_node_constants.config_files_directory + "start.sh %s %s" % (cid, file_name)],
     )
 
-    icon_node_service_response = plan.add_service(name=service_name, config=icon_node_service_config)
-    plan.exec(service_name=service_name, recipe=ExecRecipe(command=["/bin/sh", "-c", "apk add jq"]))
+    icon_node_service_response = plan.add_service(name = service_name, config = icon_node_service_config)
+    plan.exec(service_name = service_name, recipe = ExecRecipe(command = ["/bin/sh", "-c", "apk add jq"]))
 
     public_url = get_service_url(
-        network_keys_and_public_address.public_ip_address, icon_node_service_config.public_ports,
+        network_keys_and_public_address.public_ip_address, 
+        icon_node_service_config.public_ports,
         icon_node_constants.rpc_endpoint_path
     )
-    private_url = get_service_url(icon_node_service_response.ip_address, icon_node_service_response.ports, icon_node_constants.rpc_endpoint_path)
+    private_url = get_service_url(
+        icon_node_service_response.ip_address, 
+        icon_node_service_response.ports, 
+        icon_node_constants.rpc_endpoint_path
+    )
 
     chain_id = plan.exec(
-        service_name=service_name, recipe=ExecRecipe(
-            command=["/bin/sh", "-c", "./bin/goloop chain inspect %s --format {{.NID}} | tr -d '\n\r'" % cid]
+        service_name = service_name, 
+        recipe = ExecRecipe(
+            command = ["/bin/sh", "-c", "./bin/goloop chain inspect %s --format {{.NID}} | tr -d '\n\r'" % cid]
         )
     )
 
     network = "{0}.icon".format(chain_id["output"])
 
     return struct(
-        service_name=service_name,
-        network_name=network_name,
-        network=network,
-        nid=chain_id["output"],
-        endpoint=private_url,
-        endpoint_public=public_url,
-        keystore_path="keystores/keystore.json",
-        keypassword="gochain",
+        service_name = service_name,
+        network_name = network_name,
+        network = network,
+        nid = chain_id["output"],
+        endpoint = private_url,
+        endpoint_public = public_url,
+        keystore_path = "keystores/keystore.json",
+        keypassword = "gochain",
     )
 
 
 def get_service_url(ip_address, ports, path):
-    """_summary_
+    """
+    Get the service url 
 
     Args:
-        ip_address (string): 
-        ports (int): _description_
-        path (int): _description_
+        ip_address (str): The IP address of the service.
+        ports (int): The port id of the service.
+        path (int): The path of the service.
 
     Returns:
-        string: service url
+        str: service url
     """
     port_id = ports[network_keys_and_public_address.rpc].number
     protocol = ports[network_keys_and_public_address.rpc].application_protocol

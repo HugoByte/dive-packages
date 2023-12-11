@@ -139,3 +139,80 @@ NEUTRON_NODE2_CONFIG = struct(
     key = "test-key",
     password = "clock post desk civil pottery foster expand merit dash seminar song memory figure uniform spice circle try happy obvious trash crime hybrid hood cushion",
 )
+
+ICON_NODE0_CONFIG = struct(
+    private_port = 9080,
+    public_port = 8090,
+    p2p_listen_address = 7080,
+    p2p_address = 8080,
+    cid = "0xacbc4e",
+    uploaded_genesis = {},
+    genesis_file_path = "../../static-files/config/genesis-icon-0.zip",
+    genesis_file_name = "genesis-icon-0.zip"
+)
+
+
+ICON_NODE1_CONFIG = struct(
+    private_port = 9081,
+    public_port = 8091,
+    p2p_listen_address = 7081,
+    p2p_address = 8081,
+    cid = "0x42f1f3",
+    uploaded_genesis = {},
+    genesis_file_path = "../../static-files/config/genesis-icon-1.zip",
+    genesis_file_name = "genesis-icon-1.zip"
+)
+
+ARCHWAY_COMMANDS = struct(
+    start_node_cmd = "cd ../..{0} && chmod +x start_archway.sh && ./start_archway.sh {1} {2} {3}",
+    bindPort_cmd = '''echo '{0}' | archwayd tx wasm execute "{1}" '{{"bind_port":{{"address":"{2}", "port_id":"xcall"}}}}' --from {3} --keyring-backend test --chain-id {4} --output json -y''',
+    registerClient_cmd = '''echo '{0}' | archwayd tx wasm execute "{1}" '{{"register_client":{{"client_type":"iconclient","client_address":"{2}"}}}}' --from {3} --keyring-backend test --chain-id {4} --output json -y''',
+    add_connection_xcall_dapp_cmd = "echo '{0}' | archwayd tx wasm execute {1} '{2}' --from {3} --keyring-backend test --chain-id {4} --output json -y",
+    configure_xcall_connection_cmd = "echo '{0}'| archwayd tx wasm execute {1} '{2}' --from {3} --keyring-backend test --chain-id {4} --output json -y",
+    set_default_connection_xcall_cmd = "echo '{0}'| archwayd tx wasm execute {1} '{2}' --from {3} --keyring-backend test --chain-id {4} --output json -y"
+)
+
+NEUTRON_COMMANDS = struct(
+    start_node_cmd = "chmod +x ../..{0}init.sh && chmod +x ../..{1}start_neutron.sh && chmod +x ../..{2}init-neutrond.sh && key={3} password=\"{4}\" CHAINID={5} ../..{6}init.sh && CHAINID={7} ../..{8}init-neutrond.sh && CHAINID={9} ../..{10}start_neutron.sh",
+    bindPort_cmd = '''echo '{0}' | neutrond tx wasm execute "{1}" '{{"bind_port":{{"address":"{2}", "port_id":"xcall"}}}}' --from {3} --home ./data/{4} --keyring-backend test --chain-id {5} --output json -y''',
+    registerClient_cmd = '''echo '{0}' | neutrond tx wasm execute "{1}" '{{"register_client":{{"client_type":"iconclient","client_address":"{2}"}}}}' --from {3} --home ./data/{4} --keyring-backend test --chain-id {5} --output json -y''',
+    add_connection_xcall_dapp_cmd = "echo '{0}' | neutrond tx wasm execute {1} '{2}' --from {3} --home ./data/{4} --keyring-backend test --chain-id {5} --output json -y",
+    configure_xcall_connection_cmd = "echo '{0}'| neutrond tx wasm execute {1} '{2}' --from {3} --home ./data/{4} --keyring-backend test --chain-id {5} --output json -y",
+    set_default_connection_xcall_cmd = "echo '{0}'| neutrond tx wasm execute {1} '{2}' --from {3} --home ./data/{4} --keyring-backend test --chain-id {5} --output json -y"
+)
+
+node_details = {
+    "archway" : {
+        "node_constants" : ARCHWAY_SERVICE_CONFIG,
+        "cmd_keyword" : "archwayd",
+        "contract_path" : "../contracts/{0}.wasm",
+        "path" : "",
+        "service_config" : ARCHAY_NODE0_CONFIG,
+        "cosmos_service_config" : ARCHWAY_SERVICE_CONFIG,
+        "private_ports" : COMMON_ARCHWAY_PRIVATE_PORTS,
+        "password" : ARCHWAY_SERVICE_CONFIG.password,
+        "start_node_cmd" : ARCHWAY_COMMANDS.start_node_cmd,
+        "bindPort_cmd" : ARCHWAY_COMMANDS.bindPort_cmd,
+        "registerClient_cmd" : ARCHWAY_COMMANDS.registerClient_cmd,
+        "add_connection_xcall_dapp_cmd": ARCHWAY_COMMANDS.add_connection_xcall_dapp_cmd,    
+        "configure_xcall_connection_cmd": ARCHWAY_COMMANDS.configure_xcall_connection_cmd,            
+        "set_default_connection_xcall_cmd": ARCHWAY_COMMANDS.set_default_connection_xcall_cmd      
+    },
+
+    "neutron" : {
+        "node_constants" : NEUTRON_SERVICE_CONFIG,
+        "cmd_keyword" : "neutrond",
+        "contract_path" : "../../root/contracts/{0}.wasm",
+        "path":"--home ./data/{0}",
+        "service_config" : NEUTRON_NODE1_CONFIG,
+        "cosmos_service_config" : NEUTRON_SERVICE_CONFIG,
+        "password" : NEUTRON_NODE1_CONFIG.password,
+        "private_ports" : NEUTRON_PRIVATE_PORTS,
+        "start_node_cmd": NEUTRON_COMMANDS.start_node_cmd,
+        "bindPort_cmd": NEUTRON_COMMANDS.bindPort_cmd,
+        "registerClient_cmd": NEUTRON_COMMANDS.registerClient_cmd,
+        "add_connection_xcall_dapp_cmd": NEUTRON_COMMANDS.add_connection_xcall_dapp_cmd,
+        "configure_xcall_connection_cmd": NEUTRON_COMMANDS.configure_xcall_connection_cmd,
+        "set_default_connection_xcall_cmd": NEUTRON_COMMANDS.set_default_connection_xcall_cmd
+    }
+}

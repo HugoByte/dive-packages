@@ -1,25 +1,17 @@
+# Import the required modules 
 icon_setup_node = import_module("./services/jvm/icon/src/node-setup/setup_icon_node.star")
-icon_node_launcher = import_module("./src/node-setup/start_icon_node.star")
-eth_contract_service = import_module("./services/evm/eth/src/node-setup/contract-service.star")
-eth_relay_setup = import_module("./services/evm/eth/src/relay-setup/contract_configuration.star")
 eth_node = import_module("./services/evm/eth/eth.star")
-icon_relay_setup = import_module("./services/jvm/icon/src/relay-setup/contract_configuration.star")
 icon_service = import_module("./services/jvm/icon/icon.star")
-btp_bridge = import_module("./services/bridges/btp/src/bridge.star")
-input_parser = import_module("./package_io/input_parser.star")
 cosmvm_node = import_module("./services/cosmvm/cosmvm.star")
-cosmvm_relay = import_module("./services/bridges/ibc/src/bridge.star")
-cosmvm_relay_setup = import_module("./services/cosmvm/archway/src/relay-setup/contract-configuration.star")
-neutron_relay_setup = import_module("./services/cosmvm/neutron/src/relay-setup/contract-configuration.star")
 btp_relay_setup = import_module("./services/bridges/btp/src/bridge.star")
 ibc_relay_setup = import_module("./services/bridges/ibc/src/bridge.star")
 
 
-def run(plan, command, node_name= None, custom_config = None, icon_service_config = None ,decentralize = false, bride_type = None ,chain_a = None, chain_b = None, service_config_a = None, service_config_b = None, bridge = false):
+def run(plan, command, node_name= None, custom_config = None, icon_service_config = None ,decentralize = False, bridge_type = None ,chain_a = None, chain_b = None, service_config_a = None, service_config_b = None, bridge = False):
     """
     Parse the input and execute the specified action.
 
-    Parameters:
+    Args:
         plan (Plan): The Kurtosis plan.
         command (str): The action to perform.
             - 'chain': Start a node.
@@ -30,7 +22,6 @@ def run(plan, command, node_name= None, custom_config = None, icon_service_confi
             - Currently supported options: 'eth', 'hardhat', 'icon', 'neutron', 'archway'.
 
         custom_config (dict, optional): Custom configuration for node or relay. If empty, the node will start with default settings.
-        bridge
         For ICON node with custom configuration, the following fields should be provided in custom_config_dict:
             - private_port (int): The private port for the node.
             - public_port (int): The public port for the node.
@@ -49,10 +40,10 @@ def run(plan, command, node_name= None, custom_config = None, icon_service_confi
             - public_tcp (str): The public TCP address.
             - public_rpc (str): The public RPC address.
 
-        icon_service_config (dict, optional): ServiceConfig, this field should be provided when wanna decentralize already running icon node
+        icon_service_config (dict, optional): ServiceConfig, this field should be provided when an already running icon node is to be decentralized
 
         decentralize (bool, optional): Flag indicating whether to decentralize the ICON node.
-        bride_type (str, optional): The type of relay.
+        bridge_type (str, optional): The type of relay.
             - 'ibc': Start an IBC relay.
             - 'btp': Start a BTP bridge.
 
@@ -63,21 +54,41 @@ def run(plan, command, node_name= None, custom_config = None, icon_service_confi
         bridge (bool): Flag indicating whether to use a BMV bridge.
 
     Returns:
-        service_details (dict): Details about the service started.
+        dict: Details about the service started.
     """
-    return parse_input(plan, command, node_name, custom_config, icon_service_config ,decentralize, bride_type ,chain_a, chain_b, service_config_a, service_config_b, bridge)
+    return parse_input(plan, command, node_name, custom_config, icon_service_config ,decentralize, bridge_type ,chain_a, chain_b, service_config_a, service_config_b, bridge)
 
 
 
-def parse_input(plan, action, node_name= None, custom_config = None, icon_service_config = None, decentralize = false, relay_type = None, chain_a = None, chain_b = None, service_config_a = None, service_config_b = None, bridge = false):
-    # start the single node
+def parse_input(plan, action, node_name= None, custom_config = None, icon_service_config = None, decentralize = False, relay_type = None, chain_a = None, chain_b = None, service_config_a = None, service_config_b = None, bridge = False):
+    """
+    Parse the input and execute the specified action.
+
+    Args:
+        plan (Plan): The Kurtosis plan.
+        action (str): The action to perform.
+        node_name (str, optional): Name of the node to start.
+        custom_config (dict, optional): Custom configuration for node or relay. If empty, the node will start with default settings.
+        icon_service_config (dict, optional): ServiceConfig, this field should be provided when an already running icon node is to be decentralized
+        decentralize (bool, optional): Flag indicating whether to decentralize the ICON node.
+        relay_type (str, optional): The type of relay.
+        chain_a (str): The source chain for relaying.
+        chain_b (str): The destination chain for relaying.
+        service_config_a (dict): Service configuration for chain A (source chain for relaying, Note: fields in dictonary should be same as output return after running node).
+        service_config_b (dict): Service configuration for chain B (destination chain for relaying, Note: fields in dictonary should be same as output return after running node).
+        bridge (bool): Flag indicating whether to use a BMV bridge.
+
+    Returns:
+        dict: Details about the service started.
+    """
+    #  Start the single node
     if action == "chain":
         if node_name != None:
             run_node(plan, node_name, decentralize, custom_config)
         else:
             fail("node_name parameter is missing, node_name require to start node.")
 
-
+    # Start a bridge between two nodes
     elif action == "bridge":
         # Start btp relay between two nodes
         if relay_type == "btp":
@@ -113,6 +124,7 @@ def parse_input(plan, action, node_name= None, custom_config = None, icon_servic
         else:
             fail("More Relay Support will be added soon")
     
+    # Decentralize the icon node
     elif action == "decentralize":
         if icon_service_config != None:
             icon_setup_node.configure_node(icon_service_config["service_name"], icon_service_config["enpoint"], icon_service_config["keystore_path"], icon_service_config["keypassword"], icon_service_config["nid"])
@@ -121,25 +133,38 @@ def parse_input(plan, action, node_name= None, custom_config = None, icon_servic
     else: 
         fail("commands only support 'chain', 'bridge' and 'decentralize'")
 
-
-
 def run_node(plan, node_name, decentralize, custom_config = None):
+    """
+    Start a single node.
+
+    Args:
+        plan (Plan): The Kurtosis plan.
+        node_name (str): Name of the node to start.
+        decentralize (bool): Flag indicating whether to decentralize the ICON node.
+        custom_config (dict, optional): Custom configuration for node or relay. Defaults to None.
+
+    Returns:
+        dict: Details about the service started.
+    """
+    # Start the icon node
     if node_name == "icon":
         if custom_config == None:
             service_config = icon_service.start_node_service(plan)
         else: 
-            service_config = icon_node_launcher.start_icon_node(plan, custom_config["private_port"], custom_config["private_port"], custom_config["p2p_listen_address"], custom_config["p2p_address"], custom_config["cid"], {}, custom_config["genesis_file_path"], custom_config["genesis_file_name"])
+            service_config = icon_service.start_node_service(plan, custom_config["private_port"], custom_config["public_port"], custom_config["p2p_listen_address"], custom_config["p2p_address"], custom_config["cid"], custom_config["uploaded_genesis"], custom_config["genesis_file_path"], custom_config["genesis_file_name"])
 
-        if decentralize == true:
+        if decentralize == True:
             icon_setup_node.configure_node(service_config["service_name"], service_config["enpoint"], service_config["keystore_path"], service_config["keypassword"], service_config["nid"])
         
         return service_config
 
+    # Start EVM based nodes (eth and hardhat)
     elif node_name == "eth" or node_name == "hardhat":
         return eth_node.start_eth_node_service(plan, node_name)
 
+    # Start cosmos based nodes (archway and neutron)
     elif node_name == "archway" or node_name == "neutron":
-        if cutsom_config == None:
+        if custom_config == None:
             return cosmvm_node.start_cosmvm_chains(plan, node_name)
         else:
             return cosmvm_node.start_cosmvm_chains(plan, node_name, custom_config["chain_id"], custom_config["key"], custom_config["password"], custom_config["public_grpc"], custom_config["public_http"], custom_config["public_tcp"], custom_config["public_rpc"])

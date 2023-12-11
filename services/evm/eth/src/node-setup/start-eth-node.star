@@ -1,21 +1,18 @@
+# Import the required modules and constants
 constants = import_module("../../../../../package_io/constants.star")
 participant_network = import_module("github.com/kurtosis-tech/eth-network-package/src/participant_network.star")
 input_parser = import_module("github.com/kurtosis-tech/eth-network-package/package_io/input_parser.star")
-static_files = import_module("github.com/kurtosis-tech/eth-network-package/static_files/static_files.star")
-genesis_constants = import_module("github.com/kurtosis-tech/eth-network-package/src/prelaunch_data_generator/genesis_constants/genesis_constants.star")
-
 network_keys_and_public_address = constants.NETWORK_PORT_KEYS_AND_IP_ADDRESS
 
-# Spins Up the ETH Node
 def start_eth_node(plan):
     """
     Function to start an Ethereum node.
 
     Args:
-        plan: plan.
+        plan (Plan): The Kurtosis plan.
 
     Returns:
-        A dictionary containing configuration data for the started Ethereum node.
+        dict: A dictionary containing configuration data for the started Ethereum node.
     """
     eth_constants = constants.ETH_NODE_CLIENT
     args_with_right_defaults = input_parser.get_args_with_default_values({})
@@ -39,17 +36,16 @@ def start_eth_node(plan):
         keypassword = eth_constants.keypassword
     )
 
-# Returns Network Address
 def get_network_address(ip_addr, rpc_port):
     """
-    Function to return the network address.
+    Function to return the network address.  
 
     Args:
-        - ip_addr: IP address of the network.
-        - rpc_port: RPC port number.
+        ip_addr (str): The IP address.
+        rpc_port (int): The RPC port.
 
     Returns:
-        The network address as a string.
+        str: The network address as a string.
     """
     return '{0}:{1}'.format(ip_addr, rpc_port)
 
@@ -58,41 +54,40 @@ def start_node_service(plan, node_type):
     Function to start a node service.
 
     Args:
-        - plan: A plan object representing the node setup plan.
-        - node_type: The type of node to start (e.g., "eth" or "hardhat").
+        plan (Plan): The Kurtosis plan.
+        node_type (str): The type of node to start (e.g., "eth" or "hardhat").
 
     Returns:
-        Configuration data for the started node service as a dictionary.
+        dict: Configuration data for the started node service as a dictionary.
     """
     if node_type == "eth":
         return start_eth_node(plan)
     else:
         return start_hardhat_node(plan)
 
-# Spins up Hardhat Node
 def start_hardhat_node(plan):
     """
     Function to start a Hardhat Ethereum node.
 
     Args:
-        plan: plan.
+         plan (Plan): The Kurtosis plan.
 
     Returns:
-        Configuration data for the started Hardhat node service as a dictionary.
+        dict: Configuration data for the started Hardhat node service as a dictionary.
     """
     plan.print("Starting Hardhat Node")
 
     hardhat_constants = constants.HARDHAT_NODE_CLIENT
 
-    plan.upload_files(src=hardhat_constants.config_files_path, name="hardhat-config")
+    plan.upload_files(src = hardhat_constants.config_files_path, name = "hardhat-config")
 
     service_config = ServiceConfig(
         image = hardhat_constants.node_image,
         ports = {
-            network_keys_and_public_address.rpc : PortSpec(number=hardhat_constants.port, transport_protocol=network_keys_and_public_address.tcp.upper(), application_protocol=network_keys_and_public_address.http)
+            network_keys_and_public_address.rpc : PortSpec(number = hardhat_constants.port, transport_protocol = network_keys_and_public_address.tcp.upper(), application_protocol = network_keys_and_public_address.http)
         },
         public_ports = {
-            network_keys_and_public_address.rpc : PortSpec(number=hardhat_constants.port, transport_protocol=network_keys_and_public_address.tcp.upper(), application_protocol=network_keys_and_public_address.http)
+            network_keys_and_public_address.rpc : PortSpec(number = hardhat_constants.port, transport_protocol = network_keys_and_public_address.tcp.upper(), application_protocol = network_keys_and_public_address.http)
         },
         files = {
             hardhat_constants.config_files_directory : "hardhat-config"
@@ -100,7 +95,7 @@ def start_hardhat_node(plan):
         entrypoint = ["/bin/sh", "-c", "mkdir -p /app && cd app && npm install hardhat && /app/node_modules/.bin/hardhat --config ../config/hardhat.config.js node 2>&1 | tee /app/logs/hardhat.log"]
     )
 
-    response = plan.add_service(name=hardhat_constants.service_name, config=service_config)
+    response = plan.add_service(name = hardhat_constants.service_name, config = service_config)
 
     private_url = get_network_address(response.ip_address, hardhat_constants.port)
     public_url = get_network_address(network_keys_and_public_address.public_ip_address, hardhat_constants.port)

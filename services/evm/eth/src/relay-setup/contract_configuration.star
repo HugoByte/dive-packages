@@ -1,3 +1,4 @@
+# Import the required modules 
 eth_contract_deployer_service = import_module("../node-setup/contract-deployer.star")
 
 def deploy_bmc(plan, chain_name, network, network_name):
@@ -5,7 +6,7 @@ def deploy_bmc(plan, chain_name, network, network_name):
     Deploy BMC on the ETH network.
 
     Args:
-        plan (Plan):  plan.
+        plan (Plan): The Kurtosis plan.
         chain_name (str): The name of the blockchain network.
         network (str): The network identifier.
         network_name (str): The name of the network.
@@ -27,9 +28,9 @@ def deploy_bmc(plan, chain_name, network, network_name):
     bmcs_address = eth_contract_deployer_service.get_contract_address(plan, "bmcs", chain_name)
 
     return struct(
-        bmcm=bmcm_address,
-        bmcs=bmcs_address,
-        bmc=bmc_address
+        bmcm = bmcm_address,
+        bmcs = bmcs_address,
+        bmc = bmc_address
     )
 
 
@@ -38,7 +39,7 @@ def deploy_xcall(plan, chain_name, network, network_name):
     Deploy an xCall Contract on the ETH network.
 
     Args:
-        plan (Plan):  plan.
+        plan (Plan): The Kurtosis plan.
         chain_name (str): The name of the blockchain network.
         network (str): The network identifier.
         network_name (str): The name of the xCall contract.
@@ -60,7 +61,7 @@ def deploy_dapp(plan, chain_name, network, network_name):
     Deploy a Dapp Contract on the ETH network.
 
     Args:
-        plan (Plan): The deployment plan.
+        plan (Plan): The Kurtosis plan.
         chain_name (str): The name of the blockchain network.
         network (str): The network identifier.
         network_name (str): The name of the Dapp contract.
@@ -83,7 +84,7 @@ def deploy_bmv_bridge(plan, lastblock_height, src_bmc_address, src_chain_network
     Deploy a BmvBridge Contract on the ETH network and return its address.
 
     Args:
-        plan (Plan): The deployment plan.
+        plan (Plan): The Kurtosis plan.
         lastblock_height (str): The last block height on the source chain.
         src_bmc_address (str): The address of the source BMC (Blockchain Management Contract).
         src_chain_network (str): The network of the source chain.
@@ -110,7 +111,7 @@ def deploy_bmv(plan, src_first_block_header, src_bmc_address, src_chain_network,
     Deploy a Bmv Contract on the specified network and return its address.
 
     Args:
-        plan (Plan): plan.
+        plan (Plan): The Kurtosis plan.
         src_first_block_header (str): The first block header on the source chain.
         src_bmc_address (str): The address of the source BMC (Blockchain Management Contract).
         src_chain_network (str): The network of the source chain.
