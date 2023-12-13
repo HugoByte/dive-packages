@@ -2,7 +2,7 @@
 eth_node = import_module("./src/node-setup/start-eth-node.star")
 eth_relay_setup = import_module("./src/relay-setup/contract_configuration.star")
 
-def start_eth_node_service(plan, node_type):
+def start_eth_node_service(plan, node_type, public_port = None):
     """
     Function to start an Ethereum node service.
 
@@ -13,7 +13,7 @@ def start_eth_node_service(plan, node_type):
     Returns:
         dict: A dictionary containing configuration data for the started Ethereum node service.
     """
-    node_service_data = eth_node.start_node_service(plan, node_type)
+    node_service_data = eth_node.start_node_service(plan, node_type, public_port)
 
     config_data = {
         "service_name": node_service_data.service_name,

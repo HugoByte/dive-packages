@@ -49,7 +49,7 @@ def get_network_address(ip_addr, rpc_port):
     """
     return '{0}:{1}'.format(ip_addr, rpc_port)
 
-def start_node_service(plan, node_type):
+def start_node_service(plan, node_type, public_port = None):
     """
     Function to start a node service.
 
@@ -63,9 +63,9 @@ def start_node_service(plan, node_type):
     if node_type == "eth":
         return start_eth_node(plan)
     else:
-        return start_hardhat_node(plan)
+        return start_hardhat_node(plan, public_port)
 
-def start_hardhat_node(plan):
+def start_hardhat_node(plan, public_port = None):
     """
     Function to start a Hardhat Ethereum node.
 
@@ -78,6 +78,7 @@ def start_hardhat_node(plan):
     plan.print("Starting Hardhat Node")
 
     hardhat_constants = constants.HARDHAT_NODE_CLIENT
+    public_port = public_port if public_port != None else hardhat_constants.port
 
     plan.upload_files(src = hardhat_constants.config_files_path, name = "hardhat-config")
 
@@ -87,7 +88,7 @@ def start_hardhat_node(plan):
             network_keys_and_public_address.rpc : PortSpec(number = hardhat_constants.port, transport_protocol = network_keys_and_public_address.tcp.upper(), application_protocol = network_keys_and_public_address.http)
         },
         public_ports = {
-            network_keys_and_public_address.rpc : PortSpec(number = hardhat_constants.port, transport_protocol = network_keys_and_public_address.tcp.upper(), application_protocol = network_keys_and_public_address.http)
+            network_keys_and_public_address.rpc : PortSpec(number = public_port, transport_protocol = network_keys_and_public_address.tcp.upper(), application_protocol = network_keys_and_public_address.http)
         },
         files = {
             hardhat_constants.config_files_directory : "hardhat-config"
@@ -98,7 +99,7 @@ def start_hardhat_node(plan):
     response = plan.add_service(name = hardhat_constants.service_name, config = service_config)
 
     private_url = get_network_address(response.ip_address, hardhat_constants.port)
-    public_url = get_network_address(network_keys_and_public_address.public_ip_address, hardhat_constants.port)
+    public_url = get_network_address(network_keys_and_public_address.public_ip_address, public_port)
     
     return struct(
         service_name = hardhat_constants.service_name,
