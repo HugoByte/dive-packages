@@ -8,7 +8,7 @@ input_parser = import_module("../../../../package_io/input_parser.star")
 cosmvm_node = import_module("../../../cosmvm/cosmvm.star")
 cosmos_relay_setup = import_module("../../../cosmvm/src/relay-setup/contract-configuration.star")
 
-def run_cosmos_ibc_setup(plan, src_chain, dst_chain):
+def run_cosmos_ibc_setup(plan, src_chain, dst_chain, src_service_config = {}, dst_service_config = {}):
     """
     Start IBC bridge between two chains.
 
@@ -16,6 +16,8 @@ def run_cosmos_ibc_setup(plan, src_chain, dst_chain):
         plan (Plan): The Kurtosis plan.
         src_chain (str): The name of the source chain.
         dst_chain (str): The name of the destination chain.
+        src_service_config (dict, optional): The chain config details for source chain.
+        dst_service_config (dict, optional): The chain config details for destination chain.
     
     Returns:
         dict: The configuration data for the IBC bridge.
@@ -23,18 +25,18 @@ def run_cosmos_ibc_setup(plan, src_chain, dst_chain):
     # Check if source and destination chains are both CosmVM-based chains (archway or neutron)
     if (src_chain in ["archway", "neutron"]) and (dst_chain in ["archway", "neutron"]):
         # Start IBC between two CosmVM chains
-        data = cosmvm_node.start_ibc_between_cosmvm_chains(plan, src_chain, dst_chain)
+        data = cosmvm_node.start_ibc_between_cosmvm_chains(plan, src_chain, dst_chain, src_service_config, dst_service_config)
         config_data = run_cosmos_ibc_relay_for_already_running_chains(plan, src_chain, dst_chain, data.src_config, data.dst_config)
         return config_data
 
     if dst_chain in ["archway", "neutron"] and src_chain == "icon":
         # Start ICON node service
-        src_chain_config = icon_service.start_node_service(plan)
+        src_chain_config = icon_service.start_node_service(plan, chain_config = src_service_config)
         # Start CosmVM node service
-        dst_chain_config = cosmvm_node.start_cosmvm_chains(plan, dst_chain)
+        dst_chain_config = cosmvm_node.start_cosmvm_chains(plan, dst_chain, chain_config = dst_service_config)
         dst_chain_config = input_parser.struct_to_dict(dst_chain_config)
         # Get service names and new generate configuration data
-        config_data = run_cosmos_ibc_relay_for_already_running_chains(plan, src_chain, dst_chain ,src_chain_config, dst_chain_config)
+        config_data = run_cosmos_ibc_relay_for_already_running_chains(plan, src_chain, dst_chain, src_chain_config, dst_chain_config)
         return config_data
 
 def run_cosmos_ibc_relay_for_already_running_chains(plan, src_chain, dst_chain, src_chain_config, dst_chain_config):

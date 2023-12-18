@@ -9,6 +9,7 @@ def start_eth_node_service(plan, node_type, public_port = None):
     Args:
         plan (Plan): The Kurtosis plan.
         node_type (str): The name of EVM supported chain.
+        public_port (int, optional): The public port to start the chain node.
 
     Returns:
         dict: A dictionary containing configuration data for the started Ethereum node service.
