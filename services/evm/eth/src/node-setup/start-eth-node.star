@@ -56,6 +56,7 @@ def start_node_service(plan, node_type, public_port = None):
     Args:
         plan (Plan): The Kurtosis plan.
         node_type (str): The type of node to start (e.g., "eth" or "hardhat").
+        public_port (int, optional): The public port to start the chain node.
 
     Returns:
         dict: Configuration data for the started node service as a dictionary.
@@ -70,7 +71,8 @@ def start_hardhat_node(plan, public_port = None):
     Function to start a Hardhat Ethereum node.
 
     Args:
-         plan (Plan): The Kurtosis plan.
+        plan (Plan): The Kurtosis plan.
+        public_port (int, optional): The public port to start the chain node.
 
     Returns:
         dict: Configuration data for the started Hardhat node service as a dictionary.

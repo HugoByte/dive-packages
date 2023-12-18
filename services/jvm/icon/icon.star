@@ -8,38 +8,44 @@ constants = import_module("../../../package_io/constants.star")
 ICON_NODE0_CONFIG = constants.ICON_NODE0_CONFIG
 ICON_NODE1_CONFIG = constants.ICON_NODE1_CONFIG
 
-def start_node_service_icon_to_icon(plan):
+def start_node_service_icon_to_icon(plan, src_service_config = {}, dst_service_config = {}):
     """
     Spin up two ICON nodes, ICON-0 and ICON-1, and return their configuration.
 
     Args:
         plan (Plan): The Kurtosis plan.
+        src_service_config (dict, optional): The chain config details for source chain.
+        dst_service_config (dict, optional): The chain config details for destination chain.
 
     Returns:
         struct: A dictionary containing the service configuration for ICON-0 and ICON-1 nodes.
     """
+
+    src_config = get_icon_node_config(ICON_NODE0_CONFIG, src_service_config)
+    dst_config = get_icon_node_config(ICON_NODE1_CONFIG, dst_service_config)
+    
     source_chain_response = icon_node_launcher.start_icon_node(
         plan,
-        ICON_NODE0_CONFIG.private_port,
-        ICON_NODE0_CONFIG.public_port,
-        ICON_NODE0_CONFIG.p2p_listen_address,
-        ICON_NODE0_CONFIG.p2p_address,
-        ICON_NODE0_CONFIG.cid,
-        ICON_NODE0_CONFIG.uploaded_genesis,
-        ICON_NODE0_CONFIG.genesis_file_path,
-        ICON_NODE0_CONFIG.genesis_file_name
+        src_config.private_port,
+        src_config.public_port,
+        src_config.p2p_listen_address,
+        src_config.p2p_address,
+        src_config.cid,
+        src_config.uploaded_genesis,
+        src_config.genesis_file_path,
+        src_config.genesis_file_name
     )
 
     destination_chain_response = icon_node_launcher.start_icon_node(
         plan,
-        ICON_NODE1_CONFIG.private_port,
-        ICON_NODE1_CONFIG.public_port,
-        ICON_NODE1_CONFIG.p2p_listen_address,
-        ICON_NODE1_CONFIG.p2p_address,
-        ICON_NODE1_CONFIG.cid,
-        ICON_NODE1_CONFIG.uploaded_genesis,
-        ICON_NODE1_CONFIG.genesis_file_path,
-        ICON_NODE1_CONFIG.genesis_file_name
+        dst_config.private_port,
+        dst_config.public_port,
+        dst_config.p2p_listen_address,
+        dst_config.p2p_address,
+        dst_config.cid,
+        dst_config.uploaded_genesis,
+        dst_config.genesis_file_path,
+        dst_config.genesis_file_name
     )
 
     src_service_config = {
@@ -69,6 +75,24 @@ def start_node_service_icon_to_icon(plan):
         dst_config=dst_service_config,
     )
 
+def get_icon_node_config(default_node_config, chain_config):
+    if len(chain_config) != 0:
+        node_config = struct(
+            private_port = chain_config.get("private_port", default_node_config.private_port),
+            public_port = chain_config.get("public_port", default_node_config.public_port),
+            p2p_listen_address = chain_config.get("p2p_listen_address", default_node_config.p2p_listen_address),
+            p2p_address = chain_config.get("p2p_address", default_node_config.p2p_address),
+            cid = chain_config.get("cid", default_node_config.cid),
+            uploaded_genesis = default_node_config.uploaded_genesis,
+            genesis_file_path = default_node_config.genesis_file_path,
+            genesis_file_name = default_node_config.genesis_file_name,
+        )
+    else:
+        node_config = default_node_config
+
+    return node_config
+
+
 def start_node_service( 
     plan, 
     private_port = None, 
@@ -78,7 +102,8 @@ def start_node_service(
     cid = None, 
     uploaded_genesis = {}, 
     genesis_file_path = None, 
-    genesis_file_name = None
+    genesis_file_name = None,
+    chain_config = {}
 ):
     """
     Spin up a single ICON node and return its configuration.
@@ -93,18 +118,22 @@ def start_node_service(
         uploaded_genesis (dict): A dictionary containing uploaded genesis file data.
         genesis_file_path (str): The file path to the genesis file.
         genesis_file_name (str): The name of the genesis file.
+        chain_config (dict, optional): The chain config details for the chain.
 
     Returns:
         dict: A dictionary containing the service configuration for the ICON node.
     """   
-    private_port = private_port if private_port != None else ICON_NODE0_CONFIG.private_port
-    public_port = public_port if public_port != None else ICON_NODE0_CONFIG.public_port
-    p2p_listen_address = p2p_listen_address if p2p_listen_address != None else ICON_NODE0_CONFIG.p2p_listen_address
-    p2p_address = p2p_address if p2p_address != None else ICON_NODE0_CONFIG.p2p_address
-    cid = cid if cid != None else ICON_NODE0_CONFIG.cid
-    genesis_file_path = genesis_file_path if genesis_file_path != None else ICON_NODE0_CONFIG.genesis_file_path
-    genesis_file_name = genesis_file_name if genesis_file_name != None else ICON_NODE0_CONFIG.genesis_file_name
-    uploaded_genesis = uploaded_genesis if uploaded_genesis != {} else ICON_NODE0_CONFIG.uploaded_genesis
+
+    icon_service_config = get_icon_node_config(ICON_NODE0_CONFIG, chain_config)
+
+    private_port = private_port if private_port != None else icon_service_config.private_port
+    public_port = public_port if public_port != None else icon_service_config.public_port
+    p2p_listen_address = p2p_listen_address if p2p_listen_address != None else icon_service_config.p2p_listen_address
+    p2p_address = p2p_address if p2p_address != None else icon_service_config.p2p_address
+    cid = cid if cid != None else icon_service_config.cid
+    genesis_file_path = genesis_file_path if genesis_file_path != None else icon_service_config.genesis_file_path
+    genesis_file_name = genesis_file_name if genesis_file_name != None else icon_service_config.genesis_file_name
+    uploaded_genesis = uploaded_genesis if uploaded_genesis != {} else icon_service_config.uploaded_genesis
 
     node_service_response = icon_node_launcher.start_icon_node(
         plan,

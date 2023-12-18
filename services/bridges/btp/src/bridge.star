@@ -12,7 +12,7 @@ eth_relay_setup = import_module("../../../evm/eth/src/relay-setup/contract_confi
 eth_node = import_module("../../../evm/eth/eth.star")
 input_parser = import_module("../../../../package_io/input_parser.star")
 
-def run_btp_setup(plan, src_chain, dst_chain, bridge):
+def run_btp_setup(plan, src_chain, dst_chain, bridge, src_service_config = {}, dst_service_config = {}):
     """
     Start a BTP relay.
 
@@ -21,12 +21,14 @@ def run_btp_setup(plan, src_chain, dst_chain, bridge):
         src_chain (str): The source ICON chain name.
         dst_chain (str): The destination ICON chain name.
         bridge (bool): BMV bridge if true or false.
+        src_service_config (dict, optional): The chain config details for source chain.
+        dst_service_config (dict, optional): The chain config details for destination chain.
 
     Returns:
         dict: New configuration data for BTP.
     """
     if src_chain == "icon" and dst_chain == "icon":
-        data = icon_service.start_node_service_icon_to_icon(plan)
+        data = icon_service.start_node_service_icon_to_icon(plan, src_service_config, dst_service_config)
         src_chain_service_name = data.src_config["service_name"]
         dst_chain_service_name = data.dst_config["service_name"]
         icon_service.configure_icon_to_icon_node(plan, data.src_config, data.dst_config)
@@ -36,10 +38,14 @@ def run_btp_setup(plan, src_chain, dst_chain, bridge):
         if (src_chain == "eth" or src_chain == "hardhat") and dst_chain == "icon":
             dst_chain = src_chain
             src_chain = "icon"
+            src_service_config, dst_service_config = dst_service_config, src_service_config
 
         if dst_chain == "eth" or dst_chain == "hardhat":
-            src_chain_config = icon_service.start_node_service(plan)
-            dst_chain_config = eth_node.start_eth_node_service(plan, dst_chain)
+            src_chain_config = icon_service.start_node_service(plan, chain_config = src_service_config)
+            if dst_chain == "hardhat":
+                dst_chain_config = eth_node.start_eth_node_service(plan, dst_chain, dst_service_config["public_port"])
+            else:
+                dst_chain_config = eth_node.start_eth_node_service(plan, dst_chain)
 
             src_chain_service_name = src_chain_config["service_name"]
             dst_chain_service_name = dst_chain_config["service_name"]
