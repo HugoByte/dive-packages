@@ -1,16 +1,16 @@
-def run(plan, args):
+def run_build(plan, contract_artifact):
 
-    plan.upload_files(
-        src=args["contract_path"],
-        name="contracts"
-    )
+    # plan.upload_files(
+    #     src=args["contract_path"],
+    #     name="contracts"
+    # )
 
     service_details = plan.add_service(
         name = "foundry",
         config = ServiceConfig(
             image = "ghcr.io/foundry-rs/foundry:latest", 
             files = {
-                "/temp/contracts" : "contracts"
+                "/temp/contracts" : contract_artifact
             }, 
             entrypoint = ["/bin/sh"]
         ),
@@ -54,6 +54,6 @@ def run(plan, args):
         ),
     )
 
-    plan.store_service_files(service_name="foundry", src = "/foundry-project/out", name="contract_artifacts")
+    artifact_name = plan.store_service_files(service_name="foundry", src = "/foundry-project/out")
 
-    return service_details
+    return artifact_name
