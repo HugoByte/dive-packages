@@ -46,8 +46,8 @@ def generate_new_config_data_for_ibc(src_chain, dst_chain, srcchain_service_name
     """
     config_data = {
     "links": {
-        "src": "%s" % src_chain,
-        "dst": "%s" % dst_chain
+        "src": "%s" % srcchain_service_name,
+        "dst": "%s" % dst_chain_service_name
     },
     "chains": {
         "%s" % srcchain_service_name: {},
@@ -80,8 +80,8 @@ def generate_new_config_data_for_btp(src_chain, dst_chain, srcchain_service_name
     if bridge == "":
         config_data = {
         "links": {
-            "src": "%s" % src_chain,
-            "dst": "%s" % dst_chain
+            "src": "%s" % srcchain_service_name,
+            "dst": "%s" % dst_chain_service_name
         },
         "chains": {
             "%s" % srcchain_service_name: {},
@@ -96,8 +96,8 @@ def generate_new_config_data_for_btp(src_chain, dst_chain, srcchain_service_name
 
         config_data = {
         "links": {
-            "src": "%s" % src_chain,
-            "dst": "%s" % dst_chain
+            "src": "%s" % srcchain_service_name,
+            "dst": "%s" % dst_chain_service_name
         },
         "chains": {
             "%s" % srcchain_service_name: {},
