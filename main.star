@@ -7,7 +7,7 @@ btp_relay_setup = import_module("./services/bridges/btp/src/bridge.star")
 ibc_relay_setup = import_module("./services/bridges/ibc/src/bridge.star")
 
 
-def run(plan, command, node_name= None, custom_config = None, icon_service_config = None ,decentralize = False, bridge_type = None ,chain_a = None, chain_b = None, service_config_a = None, service_config_b = None, bridge = False):
+def run(plan, command, node_name= None, custom_config = None, icon_service_config = None, decentralize = False, bridge_type = None, chain_a = None, chain_b = None, service_config_a = None, service_config_b = None, bridge = False):
     """
     Parse the input and execute the specified action.
 
