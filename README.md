@@ -7,7 +7,7 @@
 # Table of Contents
 - [Introduction](#introduction)
   - [About](#about)
-  - [Setup and Requirements](#setup-and-requirements)
+  - [Prerequisites](#prerequisites)
 - [Integrated Chains](#integrated-chains)
 - [Integrated Bridges](#integrated-bridges)
 - [Configuration File Guidelines](#configuration-file-guidelines)
@@ -30,11 +30,13 @@
 
 Dive-packages, a meticulously crafted and versatile toolkit, is your key to unlocking new frontiers in blockchain exploration. Tailored for seamless integration with the Dive CLI, this powerful tool goes beyond the ordinary, offering not only an enhanced experience within Dive CLI but also standing independently as a robust solution. In addition to providing unparalleled flexibility and control in navigating decentralized landscapes, Dive-packages is a time and effort-saving companion, streamlining your journey into the future of blockchain innovation. Dive in and discover the ultimate synergy of efficiency and empowerment with our comprehensive Dive Packages.
 
+### Dive-packages made easy with DIVE CLI! Click [here](https://github.com/HugoByte/DIVE) to know more.
+
 ## About
 
 Our focus extends beyond mere node creation – Dive-packages is engineered to effortlessly facilitate the establishment of bridges between diverse blockchains. We understand the importance of interconnectedness in the decentralized landscape, and our toolkit ensures that users can effortlessly create bridges without the hassle of navigating complex setup procedures.
 
-## Setup and Requirements
+## Prerequisites
 
 Ensure the following prerequisites are met before using the Dive-package:
 - [Docker](https://www.docker.com/): Make sure Docker is installed on your machine. You can [install it here](https://www.docker.com/).
