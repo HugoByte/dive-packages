@@ -1,0 +1,7 @@
+{
+    "command":"bridge",
+    "bridge_type":"btp",
+    "chain_a":"icon",
+    "chain_b":"icon",
+    "bridge": true
+}

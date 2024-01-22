@@ -1,0 +1,9 @@
+{
+    "chain_id": "archway-node-0",
+    "key": "archway-node-0-key",
+    "public_grpc": 9090,
+    "public_http": 9091,
+    "public_tcp": 26656,
+    "public_rpc": 4564,
+    "password": "password"
+}
