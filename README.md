@@ -2,7 +2,7 @@
 
 **Embark on a Revolutionary Journey into Decentralization with Our Dive Package: Unleash Your Nodes, Connect Your Chains, and Immerse Yourself in the Seamless Integration of Blockchain Technologies - Where Possibilities Know No Bounds!**
 
-[![Discord](https://img.shields.io/badge/Discord-hugobyte-00FF00?style=flat&logo=discord&logoColor=00FF00&labelColor=black)](https://discord.gg/GyRQSBN3Cu)
+[![Discord](https://img.shields.io/badge/Discord-hugobyte-2FC252?style=flat&logo=discord&labelColor=black)](https://discord.gg/GyRQSBN3Cu)
 
 # Table of Contents
 - [Introduction](#introduction)
