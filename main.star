@@ -20,7 +20,7 @@ def run(plan, command, node_name= None, custom_config = None, icon_service_confi
         node_name (string): Name of the node to start.
             - Currently supported options: 'eth', 'hardhat', 'icon', 'neutron', 'archway'.
 
-        custom_config (dict[string,string]): Custom configuration for node or relay. If empty, the node will start with default settings.
+        custom_config (json): Custom configuration for node or relay. If empty, the node will start with default settings.
         For ICON node with custom configuration, the following fields should be provided in custom_config_dict:
             - private_port (int): The private port for the node.
             - public_port (int): The public port for the node.
@@ -30,7 +30,7 @@ def run(plan, command, node_name= None, custom_config = None, icon_service_confi
             - genesis_file_path (string): The file path to the genesis file.
             - genesis_file_name (string): The name of the genesis file.
 
-        For Cosmos (dict[string,string]) node with custom configuration, the following fields should be provided in the custom config dict:
+        For Cosmos (json) node with custom configuration, the following fields should be provided in the custom config dict:
             - chain_id (string): The chain ID.
             - key (string): The key.
             - password (string): The password.
@@ -39,7 +39,7 @@ def run(plan, command, node_name= None, custom_config = None, icon_service_confi
             - public_tcp (string): The public TCP address.
             - public_rpc (string): The public RPC address.
 
-        icon_service_config (dict[string,string]): ServiceConfig, this field should be provided when an already running icon node is to be decentralized
+        icon_service_config (json): ServiceConfig, this field should be provided when an already running icon node is to be decentralized
 
         decentralize (bool): Flag indicating whether to decentralize the ICON node.
         bridge_type (string): The type of relay.
@@ -48,12 +48,12 @@ def run(plan, command, node_name= None, custom_config = None, icon_service_confi
 
         chain_a (string): The source chain for relaying.
         chain_b (string): The destination chain for relaying.
-        service_config_a (dict[string,string]): Service configuration for chain A (source chain for relaying, Note: fields in dictionary should be same as output return after running node).
-        service_config_b (dict[string,string]): Service configuration for chain B (destination chain for relaying, Note: fields in dictionary should be same as output return after running node).
+        service_config_a (json): Service configuration for chain A (source chain for relaying, Note: fields in dictionary should be same as output return after running node).
+        service_config_b (json): Service configuration for chain B (destination chain for relaying, Note: fields in dictionary should be same as output return after running node).
         bridge (bool): Flag indicating whether to use a BMV bridge.
 
     Returns:
-        dict[string,string]: Details about the service started.
+        json: Details about the service started.
     """
     return parse_input(plan, command, node_name, custom_config, icon_service_config ,decentralize, bridge_type ,chain_a, chain_b, service_config_a, service_config_b, bridge)
 
