@@ -12,49 +12,48 @@ def run(plan, command, node_name= None, custom_config = None, icon_service_confi
     Parse the input and execute the specified action.
 
     Args:
-        plan (Plan): The Kurtosis plan.
-        command (str): The action to perform.
+        command (string): The action to perform.
             - 'chain': Start a node.
             - 'bridge': Start a relay.
             - 'decentralize': decentralize already running icon node.
 
-        node_name (str, optional): Name of the node to start.
+        node_name (string): Name of the node to start.
             - Currently supported options: 'eth', 'hardhat', 'icon', 'neutron', 'archway'.
 
-        custom_config (dict, optional): Custom configuration for node or relay. If empty, the node will start with default settings.
+        custom_config (json): Custom configuration for node or relay. If empty, the node will start with default settings.
         For ICON node with custom configuration, the following fields should be provided in custom_config_dict:
             - private_port (int): The private port for the node.
             - public_port (int): The public port for the node.
-            - p2p_listen_address (str): The p2p listen address.
-            - p2p_address (str): The p2p address.
-            - cid (str): The CID (Chain ID) of the node.
-            - genesis_file_path (str): The file path to the genesis file.
-            - genesis_file_name (str): The name of the genesis file.
+            - p2p_listen_address (string): The p2p listen address.
+            - p2p_address (string): The p2p address.
+            - cid (string): The CID (Chain ID) of the node.
+            - genesis_file_path (string): The file path to the genesis file.
+            - genesis_file_name (string): The name of the genesis file.
 
-        For Cosmos (Archway/Neutron) node with custom configuration, the following fields should be provided in the custom config dict:
-            - chain_id (str): The chain ID.
-            - key (str): The key.
-            - password (str): The password.
-            - public_grpc (str): The public gRPC address.
-            - public_http (str): The public HTTP address.
-            - public_tcp (str): The public TCP address.
-            - public_rpc (str): The public RPC address.
+        For Cosmos (json) node with custom configuration, the following fields should be provided in the custom config dict:
+            - chain_id (string): The chain ID.
+            - key (string): The key.
+            - password (string): The password.
+            - public_grpc (string): The public gRPC address.
+            - public_http (string): The public HTTP address.
+            - public_tcp (string): The public TCP address.
+            - public_rpc (string): The public RPC address.
 
-        icon_service_config (dict, optional): ServiceConfig, this field should be provided when an already running icon node is to be decentralized
+        icon_service_config (json): ServiceConfig, this field should be provided when an already running icon node is to be decentralized
 
-        decentralize (bool, optional): Flag indicating whether to decentralize the ICON node.
-        bridge_type (str, optional): The type of relay.
+        decentralize (bool): Flag indicating whether to decentralize the ICON node.
+        bridge_type (string): The type of relay.
             - 'ibc': Start an IBC relay.
             - 'btp': Start a BTP bridge.
 
-        chain_a (str): The source chain for relaying.
-        chain_b (str): The destination chain for relaying.
-        service_config_a (dict): Service configuration for chain A (source chain for relaying, Note: fields in dictonary should be same as output return after running node).
-        service_config_b (dict): Service configuration for chain B (destination chain for relaying, Note: fields in dictonary should be same as output return after running node).
+        chain_a (string): The source chain for relaying.
+        chain_b (string): The destination chain for relaying.
+        service_config_a (json): Service configuration for chain A (source chain for relaying, Note: fields in dictionary should be same as output return after running node).
+        service_config_b (json): Service configuration for chain B (destination chain for relaying, Note: fields in dictionary should be same as output return after running node).
         bridge (bool): Flag indicating whether to use a BMV bridge.
 
     Returns:
-        dict: Details about the service started.
+        json: Details about the service started.
     """
     return parse_input(plan, command, node_name, custom_config, icon_service_config ,decentralize, bridge_type ,chain_a, chain_b, service_config_a, service_config_b, bridge)
 
