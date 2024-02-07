@@ -1,7 +1,7 @@
 # Import the required modules and constants
 constants = import_module("../../../../../package_io/constants.star")
-participant_network = import_module("github.com/kurtosis-tech/eth-network-package/src/participant_network.star")
-input_parser = import_module("github.com/kurtosis-tech/eth-network-package/package_io/input_parser.star")
+participant_network = import_module("github.com/kurtosis-tech/ethereum-package/src/participant_network.star")
+input_parser = import_module("github.com/kurtosis-tech/ethereum-package/src/package_io/input_parser.star")
 network_keys_and_public_address = constants.NETWORK_PORT_KEYS_AND_IP_ADDRESS
 
 def start_eth_node(plan):
@@ -14,13 +14,21 @@ def start_eth_node(plan):
     Returns:
         dict: A dictionary containing configuration data for the started Ethereum node.
     """
+    
+    jwt_file = plan.upload_files(
+        src="../../static-files/jwt/jwtsecret",
+        name="jwt_file",
+    )
     eth_constants = constants.ETH_NODE_CLIENT
-    args_with_right_defaults = input_parser.get_args_with_default_values({})
+    args_with_right_defaults = input_parser.input_parser(plan, {})
     num_participants = len(args_with_right_defaults.participants)
     network_params = args_with_right_defaults.network_params
+    persistent = args_with_right_defaults.persistent
+    xatu_sentry_params = args_with_right_defaults.xatu_sentry_params
+    parallel_keystore_generation = args_with_right_defaults.parallel_keystore_generation
 
-    all_participants, cl_genesis_timestamp, _ = participant_network.launch_participant_network(
-        plan, args_with_right_defaults.participants, network_params, args_with_right_defaults.global_client_log_level
+    all_participants, cl_genesis_timestamp, _, _ = participant_network.launch_participant_network(
+        plan, args_with_right_defaults.participants, network_params, args_with_right_defaults.global_client_log_level, jwt_file, persistent, xatu_sentry_params, parallel_keystore_generation
     )
 
     network_address = get_network_address(all_participants[0].el_client_context.ip_addr, all_participants[0].el_client_context.rpc_port_num)
