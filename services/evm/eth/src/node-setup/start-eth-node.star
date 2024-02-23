@@ -15,10 +15,8 @@ def start_eth_node(plan):
         dict: A dictionary containing configuration data for the started Ethereum node.
     """
     
-    jwt_file = plan.upload_files(
-        src="../../static-files/jwt/jwtsecret",
-        name="jwt_file",
-    )
+    
+    jwt_file = upload_jwt(plan)
     eth_constants = constants.ETH_NODE_CLIENT
     args_with_right_defaults = input_parser.input_parser(plan, {})
     num_participants = len(args_with_right_defaults.participants)
@@ -26,9 +24,20 @@ def start_eth_node(plan):
     persistent = args_with_right_defaults.persistent
     xatu_sentry_params = args_with_right_defaults.xatu_sentry_params
     parallel_keystore_generation = args_with_right_defaults.parallel_keystore_generation
+    global_tolerations = args_with_right_defaults.global_tolerations
+    global_node_selectors = args_with_right_defaults.global_node_selectors
 
     all_participants, cl_genesis_timestamp, _, _ = participant_network.launch_participant_network(
-        plan, args_with_right_defaults.participants, network_params, args_with_right_defaults.global_client_log_level, jwt_file, persistent, xatu_sentry_params, parallel_keystore_generation
+        plan, 
+        args_with_right_defaults.participants,
+        network_params, 
+        args_with_right_defaults.global_client_log_level,
+        jwt_file, 
+        persistent, 
+        xatu_sentry_params, 
+        global_tolerations, 
+        global_node_selectors, 
+        parallel_keystore_generation
     )
 
     network_address = get_network_address(all_participants[0].el_client_context.ip_addr, all_participants[0].el_client_context.rpc_port_num)
@@ -121,3 +130,11 @@ def start_hardhat_node(plan, public_port = None):
         keystore_path = hardhat_constants.keystore_path,
         keypassword = hardhat_constants.keypassword
     )
+
+def upload_jwt(plan):
+    jwt_file = plan.upload_files(
+        src="../../static-files/jwt/jwtsecret",
+        name="jwt_file",
+    )
+
+    return jwt_file
